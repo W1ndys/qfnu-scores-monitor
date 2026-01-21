@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 曲奇教务</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css">
+    <style>
+        :root {
+            --primary-color: #885021;
+            --primary-color-light: #8B5A2B;
+            --primary-color-dark: #5D3615;
+            --text-primary: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --bg-primary: #F2F2F7;
+            --bg-secondary: #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .content-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .el-button--primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .el-button--primary:hover,
+        .el-button--primary:focus {
+            background-color: var(--primary-color-light);
+            border-color: var(--primary-color-light);
+        }
+
+        .el-button--primary:active {
+            background-color: var(--primary-color-dark);
+            border-color: var(--primary-color-dark);
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .link-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .status-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .status-enabled {
+            background: rgba(52, 199, 89, 0.12);
+            color: #34C759;
+        }
+
+        .status-disabled {
+            background: rgba(142, 142, 147, 0.12);
+            color: #8E8E93;
+        }
+
+        .status-expired {
+            background: rgba(255, 149, 0, 0.12);
+            color: #FF9500;
+        }
+
+        .status-normal {
+            background: rgba(52, 199, 89, 0.12);
+            color: #34C759;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="page-container">
+            <div class="header">
+                <div>
+                    <div class="header-title">🍪 曲奇教务 - 管理后台</div>
+                    <div class="header-subtitle">成绩监控系统管理</div>
+                </div>
+                <div class="actions">
+                    <el-button @click="loadUsers" :icon="Refresh">刷新列表</el-button>
+                    <el-button type="primary" @click="triggerCheck" :icon="Check">手动检测</el-button>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <el-table
+                    :data="users"
+                    v-loading="loading"
+                    style="width: 100%"
+                    :header-cell-style="{ background: '#F2F2F7', color: '#1C1C1E' }"
+                >
+                    <el-table-column prop="user_hash" label="用户哈希" width="200">
+                        <template #default="scope">
+                            <el-text truncated>{{ scope.row.user_hash.substring(0, 16) }}...</el-text>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="状态" width="120">
+                        <template #default="scope">
+                            <span :class="['status-tag', scope.row.enabled ? 'status-enabled' : 'status-disabled']">
+                                {{ scope.row.enabled ? '已启用' : '已禁用' }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Session状态" width="140">
+                        <template #default="scope">
+                            <span :class="['status-tag', scope.row.session_expired ? 'status-expired' : 'status-normal']">
+                                {{ scope.row.session_expired ? '已过期' : '正常' }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="created_at" label="创建时间" width="180" />
+                    <el-table-column label="操作" width="120">
+                        <template #default="scope">
+                            <el-button
+                                size="small"
+                                @click="toggleUser(scope.row.user_hash)"
+                            >
+                                {{ scope.row.enabled ? '禁用' : '启用' }}
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <el-empty v-if="!loading && users.length === 0" description="暂无用户数据" />
+            </div>
+
+            <div class="link-text">
+                <a href="/">← 返回用户登录</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus/dist/index.full.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue"></script>
+    <script>
+        const { createApp, ref } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                const users = ref([]);
+                const loading = ref(false);
+                const Refresh = ElementPlusIconsVue.Refresh;
+                const Check = ElementPlusIconsVue.Check;
+
+                const loadUsers = async () => {
+                    loading.value = true;
+
+                    try {
+                        const response = await fetch('/api/users');
+                        const data = await response.json();
+
+                        if (data.success) {
+                            users.value = data.users;
+                        } else {
+                            ElMessage.error('加载失败');
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const toggleUser = async (userHash) => {
+                    try {
+                        const response = await fetch(`/api/users/${userHash}/toggle`, {
+                            method: 'POST'
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            ElMessage.success('操作成功');
+                            await loadUsers();
+                        } else {
+                            ElMessage.error('操作失败');
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message);
+                    }
+                };
+
+                const triggerCheck = async () => {
+                    try {
+                        const response = await fetch('/api/check', {
+                            method: 'POST'
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            ElMessage.success(data.message);
+                        } else {
+                            ElMessage.error('检测失败');
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message);
+                    }
+                };
+
+                loadUsers();
+
+                return {
+                    users,
+                    loading,
+                    loadUsers,
+                    toggleUser,
+                    triggerCheck,
+                    Refresh,
+                    Check
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

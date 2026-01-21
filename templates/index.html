@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>曲奇教务 - 成绩监控</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css">
+    <style>
+        :root {
+            --primary-color: #885021;
+            --primary-color-light: #8B5A2B;
+            --primary-color-dark: #5D3615;
+            --text-primary: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --bg-primary: #F2F2F7;
+            --bg-secondary: #FFFFFF;
+            --spacing-lg: 16px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .page-container {
+            min-height: 100vh;
+            padding: var(--spacing-lg);
+            padding-top: 60px;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+
+        .logo-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .logo-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: 12px;
+        }
+
+        .agreement-card {
+            background: rgba(136, 80, 33, 0.05);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .agreement-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .agreement-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .van-button--primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .van-button--primary:active {
+            background: var(--primary-color-dark);
+            border-color: var(--primary-color-dark);
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .link-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="page-container">
+            <div class="logo-section">
+                <div class="logo-title">🍪 曲奇教务</div>
+                <div class="logo-subtitle">成绩监控系统</div>
+            </div>
+
+            <div class="card">
+                <div class="agreement-card">
+                    <div class="agreement-title">用户协议与安全声明</div>
+                    <div class="agreement-text">1. 本系统仅存储您的登录Session用于自动查询成绩，不保存学号和密码。</div>
+                    <div class="agreement-text">2. 系统使用学号哈希值作为用户标识，用于存储加密Session和启用状态。</div>
+                    <div class="agreement-text">3. Session数据使用AES-256-GCM加密算法存储，每个用户使用独立的随机密钥。</div>
+                    <div class="agreement-text">4. 系统会定时检测成绩变化，发现新成绩时通过钉钉推送通知。</div>
+                    <div class="agreement-text">5. 当Session过期时，系统会停止监控并发送提醒，需要重新登录。</div>
+                    <div class="agreement-text">6. 请妥善保管您的钉钉Webhook地址和签名密钥，避免泄露。</div>
+                </div>
+
+                <van-form @submit="onSubmit">
+                    <van-cell-group inset>
+                        <van-field
+                            v-model="form.user_account"
+                            label="学号"
+                            placeholder="请输入学号"
+                            :rules="[{ required: true, message: '请输入学号' }]"
+                        />
+                        <van-field
+                            v-model="form.user_password"
+                            type="password"
+                            label="密码"
+                            placeholder="请输入密码"
+                            :rules="[{ required: true, message: '请输入密码' }]"
+                        />
+                        <van-field
+                            v-model="form.dingtalk_webhook"
+                            label="钉钉Webhook"
+                            placeholder="https://oapi.dingtalk.com/robot/send?..."
+                            :rules="[{ required: true, message: '请输入钉钉Webhook' }]"
+                        />
+                        <van-field
+                            v-model="form.dingtalk_secret"
+                            label="钉钉签名"
+                            placeholder="SEC..."
+                            :rules="[{ required: true, message: '请输入钉钉签名密钥' }]"
+                        />
+                    </van-cell-group>
+
+                    <div style="margin: 16px 0;">
+                        <van-checkbox v-model="agreed">我已阅读并同意用户协议与安全声明</van-checkbox>
+                    </div>
+
+                    <van-button
+                        round
+                        block
+                        type="primary"
+                        native-type="submit"
+                        :disabled="!agreed"
+                        :loading="loading"
+                    >
+                        登录并开始监控
+                    </van-button>
+                </van-form>
+            </div>
+
+            <div class="link-text">
+                <a href="/admin">进入管理后台 →</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    form: {
+                        user_account: '',
+                        user_password: '',
+                        dingtalk_webhook: '',
+                        dingtalk_secret: ''
+                    },
+                    agreed: false,
+                    loading: false
+                }
+            },
+            methods: {
+                async onSubmit() {
+                    if (!this.agreed) {
+                        vant.showToast('请先同意用户协议');
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch('/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            vant.showSuccessToast(data.message);
+                            this.form = {
+                                user_account: '',
+                                user_password: '',
+                                dingtalk_webhook: '',
+                                dingtalk_secret: ''
+                            };
+                        } else {
+                            vant.showFailToast(data.message);
+                        }
+                    } catch (error) {
+                        vant.showFailToast('请求失败: ' + error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>
