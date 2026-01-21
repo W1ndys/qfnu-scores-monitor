@@ -44,8 +44,52 @@ def send_dingtalk_message(webhook_url, secret, message):
 
 def notify_new_scores(webhook_url, secret, new_courses):
     """通知新成绩"""
-    message = f"【成绩通知】\n检测到新成绩！\n新增课程编号: {', '.join(new_courses)}"
-    return send_dingtalk_message(webhook_url, secret, message)
+    if not new_courses:
+        return True
+
+    # 构建markdown格式的消息
+    message = "# 🎉 新成绩通知\n\n"
+    message += f"检测到 **{len(new_courses)}** 门新成绩！\n\n"
+
+    for course in new_courses:
+        message += "---\n\n"
+        message += f"### 📚 {course['课程名称']}\n\n"
+        message += f"- **成绩**: {course['成绩']}\n"
+        message += f"- **绩点**: {course['绩点']}\n"
+        message += f"- **学分**: {course['学分']}\n"
+        message += f"- **开课学期**: {course['开课学期']}\n"
+        message += f"- **课程编号**: {course['课程编号']}\n"
+        message += f"- **成绩标识**: {course['成绩标识']}\n"
+        message += f"- **总学时**: {course['总学时']}\n"
+        message += f"- **考核方式**: {course['考核方式']}\n"
+        message += f"- **考试性质**: {course['考试性质']}\n"
+        message += f"- **课程属性**: {course['课程属性']}\n"
+        message += f"- **课程性质**: {course['课程性质']}\n"
+        message += f"- **课程类别**: {course['课程类别']}\n"
+        if course['分组名']:
+            message += f"- **分组名**: {course['分组名']}\n"
+        if course['补重学期']:
+            message += f"- **补重学期**: {course['补重学期']}\n"
+        message += "\n"
+
+    timestamp, sign = generate_sign(secret)
+    url = f"{webhook_url}&timestamp={timestamp}&sign={sign}"
+
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "msgtype": "markdown",
+        "markdown": {
+            "title": "新成绩通知",
+            "text": message
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=10)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"发送钉钉消息失败: {str(e)}")
+        return False
 
 
 def notify_session_expired(webhook_url, secret):
