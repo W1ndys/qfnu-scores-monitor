@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from models import init_db, DatabaseManager, hash_user_id
+from models import init_db, DatabaseManager
 from utils.crypto import generate_key, encrypt_session
 from utils.score_monitor import serialize_session
 from utils.dingtalk import notify_new_scores, notify_session_expired
@@ -35,6 +35,7 @@ def api_login():
     user_password = data.get('user_password')
     dingtalk_webhook = data.get('dingtalk_webhook', '')
     dingtalk_secret = data.get('dingtalk_secret', '')
+    enabled = data.get('enabled', True)
 
     if not user_account or not user_password:
         return jsonify({'success': False, 'message': '学号和密码不能为空'})
@@ -53,16 +54,14 @@ def api_login():
         encryption_key = generate_key()
         encrypted_session = encrypt_session(session_data, encryption_key)
 
-        user_hash = hash_user_id(user_account)
-
         with DatabaseManager() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT OR REPLACE INTO users (user_hash, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, enabled, session_expired)
-                VALUES (?, ?, ?, ?, ?, 1, 0)
-            """, (user_hash, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret))
+                INSERT OR REPLACE INTO users (user_account, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, enabled, session_expired)
+                VALUES (?, ?, ?, ?, ?, ?, 0)
+            """, (user_account, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, 1 if enabled else 0))
 
-        return jsonify({'success': True, 'message': '登录成功，已开始监控'})
+        return jsonify({'success': True, 'message': '登录成功，已开始监控' if enabled else '登录成功，监控已暂停'})
 
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -73,17 +72,17 @@ def api_users():
     """获取用户列表"""
     with DatabaseManager() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT user_hash, enabled, session_expired, created_at, updated_at FROM users")
+        cursor.execute("SELECT user_account, enabled, session_expired, created_at, updated_at FROM users")
         users = [dict(row) for row in cursor.fetchall()]
     return jsonify({'success': True, 'users': users})
 
 
-@app.route('/api/users/<user_hash>/toggle', methods=['POST'])
-def api_toggle_user(user_hash):
+@app.route('/api/users/<user_account>/toggle', methods=['POST'])
+def api_toggle_user(user_account):
     """切换用户启用状态"""
     with DatabaseManager() as conn:
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET enabled = 1 - enabled WHERE user_hash = ?", (user_hash,))
+        cursor.execute("UPDATE users SET enabled = 1 - enabled WHERE user_account = ?", (user_account,))
     return jsonify({'success': True})
 
 

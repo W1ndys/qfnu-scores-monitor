@@ -12,7 +12,7 @@ class DatabaseManager:
     # 定义表结构
     SCHEMA = {
         'users': {
-            'user_hash': 'TEXT PRIMARY KEY',
+            'user_account': 'TEXT PRIMARY KEY',
             'encrypted_session': 'TEXT NOT NULL',
             'encryption_key': 'TEXT NOT NULL',
             'dingtalk_webhook': 'TEXT',
@@ -24,8 +24,8 @@ class DatabaseManager:
         },
         'scores': {
             'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            'user_hash': 'TEXT NOT NULL',
-            'course_ids': 'TEXT NOT NULL',
+            'user_account': 'TEXT NOT NULL',
+            'page_hash': 'TEXT NOT NULL',
             'updated_at': 'TEXT DEFAULT CURRENT_TIMESTAMP'
         }
     }

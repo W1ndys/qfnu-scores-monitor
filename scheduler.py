@@ -14,11 +14,11 @@ def check_all_users():
 
     with DatabaseManager() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT user_hash, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret FROM users WHERE enabled = 1 AND session_expired = 0")
+        cursor.execute("SELECT user_account, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret FROM users WHERE enabled = 1 AND session_expired = 0")
         users = cursor.fetchall()
 
         for user in users:
-            user_hash = user['user_hash']
+            user_account = user['user_account']
             encrypted_session = user['encrypted_session']
             encryption_key = user['encryption_key']
             dingtalk_webhook = user['dingtalk_webhook']
@@ -26,25 +26,25 @@ def check_all_users():
 
             try:
                 session = restore_session(encrypted_session, encryption_key)
-                course_ids, expired = fetch_scores(session)
+                page_hash, scores, expired = fetch_scores(session)
 
                 if expired:
-                    logger.warning(f"用户 {user_hash[:16]}... 的session已过期")
-                    cursor.execute("UPDATE users SET session_expired = 1 WHERE user_hash = ?", (user_hash,))
+                    logger.warning(f"用户 {user_account} 的session已过期")
+                    cursor.execute("UPDATE users SET session_expired = 1 WHERE user_account = ?", (user_account,))
                     notify_session_expired(dingtalk_webhook, dingtalk_secret)
                     continue
 
-                if course_ids is not None:
-                    new_courses = compare_scores(user_hash, course_ids)
+                if page_hash is not None and scores is not None:
+                    new_courses = compare_scores(user_account, page_hash, scores)
 
                     if new_courses:
-                        logger.info(f"用户 {user_hash[:16]}... 发现新成绩: {new_courses}")
+                        logger.info(f"用户 {user_account} 发现新成绩: {len(new_courses)}门")
                         notify_new_scores(dingtalk_webhook, dingtalk_secret, new_courses)
                     else:
-                        logger.info(f"用户 {user_hash[:16]}... 无新成绩")
+                        logger.info(f"用户 {user_account} 无新成绩")
 
             except Exception as e:
-                logger.error(f"检查用户 {user_hash[:16]}... 时出错: {str(e)}")
+                logger.error(f"检查用户 {user_account} 时出错: {str(e)}")
 
     logger.info("检查完成")
 
