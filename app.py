@@ -3,7 +3,7 @@ from functools import wraps
 from models import init_db, DatabaseManager
 from utils.crypto import generate_key, encrypt_session
 from utils.score_monitor import serialize_session
-from utils.dingtalk import notify_new_scores, notify_session_expired
+from dotenv import load_dotenv
 from main import simulate_login
 from utils.session_manager import get_session, reset_session
 from scheduler import start_scheduler, stop_scheduler
@@ -11,12 +11,18 @@ import os
 import atexit
 import hashlib
 
+
+load_dotenv()
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
 
 # 管理员密码配置 - 建议通过环境变量设置
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 ADMIN_PASSWORD_HASH = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
+FLASK_HOST = os.getenv("FLASK_HOST", "127.0.0.1")
+FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
+
 
 init_db()
 start_scheduler()
@@ -196,4 +202,4 @@ def api_check():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5201, debug=True)
+    app.run(host=FLASK_HOST, port=FLASK_PORT)
