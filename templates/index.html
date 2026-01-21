@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>曲奇教务 - 成绩监控</title>
+    <title>卷卷的小工具 - 成绩监控</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -46,6 +46,67 @@
         }
     </script>
     <style>
+        /* ========== CSS Variables - Design System ========== */
+        :root {
+            /* 主色 - 曲奇棕 */
+            --primary-color: #885021;
+            --primary-color-light: #8B5A2B;
+            --primary-color-pale: #A67C52;
+            --primary-color-dark: #5D3615;
+            --primary-color-opacity-10: rgba(136, 80, 33, 0.1);
+            --primary-color-opacity-5: rgba(136, 80, 33, 0.05);
+
+            /* 辅助色 */
+            --cream-color: #F5E6D3;
+            --caramel-color: #C4956A;
+
+            /* 语义色 (iOS 标准) */
+            --success-color: #34C759;
+            --warning-color: #FF9500;
+            --danger-color: #FF3B30;
+            --info-color: #007AFF;
+
+            /* 中性色 */
+            --text-primary: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --text-tertiary: #C7C7CC;
+            --bg-primary: #F5F5F5;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #E8E8E8;
+
+            /* 间距系统 (4px 基准) */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 20px;
+            --spacing-xxl: 24px;
+
+            /* 圆角系统 */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+
+            /* 阴影系统 */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+            /* 动画时长 */
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --duration-slow: 350ms;
+
+            /* 缓动函数 */
+            --ease-out: cubic-bezier(0, 0, 0.2, 1);
+            --ease-in: cubic-bezier(0.4, 0, 1, 1);
+            --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* DaisyUI Theme */
         [data-theme="cookie"] {
             --p: 28 70 33;
             --pf: 28 70 28;
@@ -53,9 +114,9 @@
             --s: 34 199 89;
             --a: 255 149 0;
             --n: 28 28 30;
-            --b1: 242 242 247;
+            --b1: 245 245 245;
             --b2: 255 255 255;
-            --b3: 229 229 234;
+            --b3: 232 232 232;
             --bc: 28 28 30;
             --rounded-box: 16px;
             --rounded-btn: 12px;
@@ -65,42 +126,201 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+            background-color: #F5F5F5 !important;
         }
 
+        .bg-base-100 {
+            background-color: #F5F5F5 !important;
+        }
+
+        .bg-base-200 {
+            background-color: #FFFFFF !important;
+        }
+
+        .bg-base-300 {
+            background-color: #E8E8E8 !important;
+        }
+
+        /* ========== 按钮组件 ========== */
         .btn-cookie {
-            background-color: #885021;
-            border-color: #885021;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
             color: white;
+            font-weight: 600;
+            transition: all var(--duration-fast) var(--ease-out);
         }
 
         .btn-cookie:hover {
-            background-color: #8B5A2B;
-            border-color: #8B5A2B;
+            background-color: var(--primary-color-light);
+            border-color: var(--primary-color-light);
         }
 
         .btn-cookie:active {
-            background-color: #5D3615;
-            border-color: #5D3615;
+            background-color: var(--primary-color-dark);
+            border-color: var(--primary-color-dark);
             transform: scale(0.98);
         }
 
-        .toggle-cookie:checked {
-            background-color: #885021;
-            border-color: #885021;
+        .btn-cookie:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
+        /* ========== Toggle 组件 ========== */
+        .toggle-cookie:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* ========== 卡片组件 ========== */
         .card {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            transition: all 250ms cubic-bezier(0, 0, 0.2, 1);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--duration-normal) var(--ease-out);
         }
 
         .card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow-md);
         }
 
+        /* ========== 警告框组件 ========== */
         .alert-cookie {
-            background-color: rgba(136, 80, 33, 0.05);
-            border-left: 4px solid #885021;
+            background-color: var(--primary-color-opacity-5);
+            border-left: 4px solid var(--primary-color);
+            border-radius: var(--radius-md);
+        }
+
+        /* ========== 输入框组件 ========== */
+        .input {
+            background-color: #FFFFFF !important;
+        }
+
+        .input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-color-opacity-10);
+            transition: all var(--duration-fast) var(--ease-out);
+            background-color: #FFFFFF !important;
+        }
+
+        /* ========== 滚动条样式 ========== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F5F5F5;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #C7C7CC;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8E8E93;
+        }
+
+        /* Firefox 滚动条 */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #C7C7CC #F5F5F5;
+        }
+
+        /* ========== 动画类 ========== */
+        /* 淡入淡出 */
+        .fade-enter {
+            opacity: 0;
+        }
+
+        .fade-enter-active {
+            transition: opacity var(--duration-normal) var(--ease-out);
+        }
+
+        .fade-leave-active {
+            transition: opacity 200ms var(--ease-in);
+        }
+
+        .fade-leave-to {
+            opacity: 0;
+        }
+
+        /* 滑入滑出 (从下往上) */
+        .slide-up-enter {
+            transform: translateY(16px);
+            opacity: 0;
+        }
+
+        .slide-up-enter-active {
+            transition: all 300ms var(--ease-out);
+        }
+
+        .slide-up-leave-active {
+            transition: all 200ms var(--ease-in);
+        }
+
+        .slide-up-leave-to {
+            transform: translateY(8px);
+            opacity: 0;
+        }
+
+        /* 展开收起 */
+        .expand-enter {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .expand-enter-active {
+            transition: all var(--duration-slow) var(--ease-out);
+            overflow: hidden;
+        }
+
+        .expand-leave-active {
+            transition: all var(--duration-normal) var(--ease-in);
+            overflow: hidden;
+        }
+
+        .expand-leave-to {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        /* 按下反馈 */
+        .pressable:active {
+            transform: scale(0.98);
+            transition: transform 100ms var(--ease-out);
+        }
+
+        /* ========== 消息提示动画 ========== */
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-16px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .message-enter {
+            animation: slideInDown var(--duration-normal) var(--ease-out);
+        }
+
+        /* ========== 加载动画 ========== */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -109,7 +329,7 @@
         <div class="max-w-2xl mx-auto">
             <!-- Logo Section -->
             <div class="text-center mb-xxl">
-                <h1 class="text-[28px] font-semibold mb-sm text-cookie leading-tight">🍪 曲奇教务</h1>
+                <h1 class="text-[28px] font-semibold mb-sm text-cookie leading-tight">🍪 卷卷的小工具</h1>
                 <p class="text-[15px] text-base-content/60">成绩监控系统</p>
             </div>
 
