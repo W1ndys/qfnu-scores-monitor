@@ -79,26 +79,43 @@ def fetch_scores(session):
 
 
 def compare_scores(user_account, page_hash, scores):
-    """对比成绩变化，使用页面哈希判断"""
+    """对比成绩变化，使用页面哈希判断并记录已播报的课程编号"""
     with DatabaseManager() as conn:
         cursor = conn.cursor()
 
-        cursor.execute("SELECT page_hash FROM scores WHERE user_account = ? ORDER BY updated_at DESC LIMIT 1", (user_account,))
+        cursor.execute("SELECT page_hash, reported_course_ids FROM scores WHERE user_account = ? ORDER BY updated_at DESC LIMIT 1", (user_account,))
         row = cursor.fetchone()
 
         if row:
             old_page_hash = row['page_hash']
+            reported_course_ids = json.loads(row['reported_course_ids'])
+
             # 如果页面哈希不同，说明有变化
             if old_page_hash != page_hash:
-                # 更新页面哈希
-                cursor.execute("INSERT INTO scores (user_account, page_hash) VALUES (?, ?)", (user_account, page_hash))
-                # 返回所有成绩作为新成绩
-                return scores
+                # 提取当前所有课程编号
+                current_course_ids = [score['课程编号'] for score in scores]
+
+                # 找出未播报的新成绩
+                new_courses = [score for score in scores if score['课程编号'] not in reported_course_ids]
+
+                # 更新数据库：覆盖页面哈希，更新已播报课程编号列表
+                updated_reported_ids = json.dumps(current_course_ids)
+                cursor.execute(
+                    "UPDATE scores SET page_hash = ?, reported_course_ids = ?, updated_at = CURRENT_TIMESTAMP WHERE user_account = ?",
+                    (page_hash, updated_reported_ids, user_account)
+                )
+
+                return new_courses
             else:
                 # 页面哈希相同，无变化
                 return []
         else:
-            # 首次记录，保存页面哈希
-            cursor.execute("INSERT INTO scores (user_account, page_hash) VALUES (?, ?)", (user_account, page_hash))
+            # 首次记录，保存页面哈希和所有课程编号
+            current_course_ids = [score['课程编号'] for score in scores]
+            reported_course_ids = json.dumps(current_course_ids)
+            cursor.execute(
+                "INSERT INTO scores (user_account, page_hash, reported_course_ids) VALUES (?, ?, ?)",
+                (user_account, page_hash, reported_course_ids)
+            )
             # 首次不通知
             return []

@@ -26,6 +26,7 @@ class DatabaseManager:
             'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             'user_account': 'TEXT NOT NULL',
             'page_hash': 'TEXT NOT NULL',
+            'reported_course_ids': 'TEXT DEFAULT "[]"',
             'updated_at': 'TEXT DEFAULT CURRENT_TIMESTAMP'
         }
     }
