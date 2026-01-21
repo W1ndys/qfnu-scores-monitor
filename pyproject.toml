@@ -12,3 +12,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "pytz>=2025.2",
 ]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
