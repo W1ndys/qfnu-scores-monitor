@@ -1,204 +1,244 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="cookie">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>曲奇教务 - 成绩监控</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css">
-    <style>
-        :root {
-            --primary-color: #885021;
-            --primary-color-light: #8B5A2B;
-            --primary-color-dark: #5D3615;
-            --text-primary: #1C1C1E;
-            --text-secondary: #8E8E93;
-            --bg-primary: #F2F2F7;
-            --bg-secondary: #FFFFFF;
-            --spacing-lg: 16px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Helvetica Neue"', '"PingFang SC"', 'sans-serif']
+                    },
+                    colors: {
+                        'cookie': '#885021',
+                        'cookie-light': '#8B5A2B',
+                        'cookie-dark': '#5D3615',
+                        'cookie-pale': '#A67C52',
+                        'cream': '#F5E6D3',
+                        'caramel': '#C4956A',
+                    },
+                    spacing: {
+                        'xs': '4px',
+                        'sm': '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                        'xxl': '24px',
+                    },
+                    borderRadius: {
+                        'sm': '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                    },
+                    transitionDuration: {
+                        'fast': '150ms',
+                        'normal': '250ms',
+                        'slow': '350ms',
+                    }
+                }
+            }
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    </script>
+    <style>
+        [data-theme="cookie"] {
+            --p: 28 70 33;
+            --pf: 28 70 28;
+            --pc: 0 0 100;
+            --s: 34 199 89;
+            --a: 255 149 0;
+            --n: 28 28 30;
+            --b1: 242 242 247;
+            --b2: 255 255 255;
+            --b3: 229 229 234;
+            --bc: 28 28 30;
+            --rounded-box: 16px;
+            --rounded-btn: 12px;
+            --animation-btn: 0.15s;
+            --animation-input: 0.15s;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
         }
 
-        .page-container {
-            min-height: 100vh;
-            padding: var(--spacing-lg);
-            padding-top: 60px;
+        .btn-cookie {
+            background-color: #885021;
+            border-color: #885021;
+            color: white;
         }
 
-        .logo-section {
-            text-align: center;
-            padding: 40px 0 30px;
+        .btn-cookie:hover {
+            background-color: #8B5A2B;
+            border-color: #8B5A2B;
         }
 
-        .logo-title {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 8px;
+        .btn-cookie:active {
+            background-color: #5D3615;
+            border-color: #5D3615;
+            transform: scale(0.98);
         }
 
-        .logo-subtitle {
-            font-size: 15px;
-            color: var(--text-secondary);
+        .toggle-cookie:checked {
+            background-color: #885021;
+            border-color: #885021;
         }
 
         .card {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            transition: all 250ms cubic-bezier(0, 0, 0.2, 1);
         }
 
-        .agreement-card {
-            background: rgba(136, 80, 33, 0.05);
-            border-radius: var(--radius-md);
-            padding: 12px;
-            margin-bottom: 16px;
-            max-height: 200px;
-            overflow-y: auto;
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        .agreement-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .agreement-text {
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-
-        .van-button--primary {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .van-button--primary:active {
-            background: var(--primary-color-dark);
-            border-color: var(--primary-color-dark);
-        }
-
-        .link-text {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 15px;
-        }
-
-        .link-text a {
-            color: var(--primary-color);
-            text-decoration: none;
+        .alert-cookie {
+            background-color: rgba(136, 80, 33, 0.05);
+            border-left: 4px solid #885021;
         }
     </style>
 </head>
-<body>
-    <div id="app">
-        <div class="page-container">
-            <div class="logo-section">
-                <div class="logo-title">🍪 曲奇教务</div>
-                <div class="logo-subtitle">成绩监控系统</div>
+<body class="bg-base-100">
+    <div class="min-h-screen py-xl px-lg" x-data="loginApp()">
+        <div class="max-w-2xl mx-auto">
+            <!-- Logo Section -->
+            <div class="text-center mb-xxl">
+                <h1 class="text-[28px] font-semibold mb-sm text-cookie leading-tight">🍪 曲奇教务</h1>
+                <p class="text-[15px] text-base-content/60">成绩监控系统</p>
             </div>
 
-            <div class="card">
-                <div class="agreement-card">
-                    <div class="agreement-title">用户协议与安全声明</div>
-                    <div class="agreement-text">1. 本系统仅存储您的登录Session用于自动查询成绩，不保存学号和密码。</div>
-                    <div class="agreement-text">2. 系统使用学号哈希值作为用户标识，用于存储加密Session和启用状态。</div>
-                    <div class="agreement-text">3. Session数据使用AES-256-GCM加密算法存储，每个用户使用独立的随机密钥。</div>
-                    <div class="agreement-text">4. 系统会定时检测成绩变化，发现新成绩时通过钉钉推送通知。</div>
-                    <div class="agreement-text">5. 当Session过期时，系统会停止监控并发送提醒，需要重新登录。</div>
-                    <div class="agreement-text">6. 请妥善保管您的钉钉Webhook地址和签名密钥，避免泄露。</div>
-                </div>
-
-                <van-form @submit="onSubmit">
-                    <van-cell-group inset>
-                        <van-field
-                            v-model="form.user_account"
-                            label="学号"
-                            placeholder="请输入学号"
-                            :rules="[{ required: true, message: '请输入学号' }]"
-                        />
-                        <van-field
-                            v-model="form.user_password"
-                            type="password"
-                            label="密码"
-                            placeholder="请输入密码"
-                            :rules="[{ required: true, message: '请输入密码' }]"
-                        />
-                        <van-field
-                            v-model="form.dingtalk_webhook"
-                            label="钉钉Webhook"
-                            placeholder="https://oapi.dingtalk.com/robot/send?..."
-                            :rules="[{ required: true, message: '请输入钉钉Webhook' }]"
-                        />
-                        <van-field
-                            v-model="form.dingtalk_secret"
-                            label="钉钉签名"
-                            placeholder="SEC..."
-                            :rules="[{ required: true, message: '请输入钉钉签名密钥' }]"
-                        />
-                    </van-cell-group>
-
-                    <div style="margin: 16px 0;">
-                        <van-checkbox v-model="agreed">我已阅读并同意用户协议与安全声明</van-checkbox>
+            <!-- Main Card -->
+            <div class="card bg-base-200 rounded-lg">
+                <div class="card-body p-lg">
+                    <!-- Agreement -->
+                    <div class="alert-cookie rounded-md p-md mb-lg">
+                        <h3 class="text-[15px] font-semibold mb-sm text-base-content">用户协议与安全声明</h3>
+                        <div class="text-[13px] space-y-1 text-base-content/70 leading-relaxed">
+                            <p>1. 本系统仅存储您的登录Session用于自动查询成绩，不保存学号和密码。</p>
+                            <p>2. 系统使用学号哈希值作为用户标识，用于存储加密Session和启用状态。</p>
+                            <p>3. Session数据使用AES-256-GCM加密算法存储，每个用户使用独立的随机密钥。</p>
+                            <p>4. 系统会定时检测成绩变化，发现新成绩时通过钉钉推送通知。</p>
+                            <p>5. 当Session过期时，系统会停止监控并发送提醒，需要重新登录。</p>
+                            <p>6. 请妥善保管您的钉钉Webhook地址和签名密钥，避免泄露。</p>
+                        </div>
                     </div>
 
-                    <van-button
-                        round
-                        block
-                        type="primary"
-                        native-type="submit"
-                        :disabled="!agreed"
-                        :loading="loading"
-                    >
-                        登录并开始监控
-                    </van-button>
-                </van-form>
+                    <!-- Message -->
+                    <div x-show="message"
+                         class="rounded-md p-md mb-lg text-[14px] transition-all duration-normal"
+                         :class="messageType === 'success' ? 'bg-[#34C759]/10 text-[#34C759]' : 'bg-[#FF3B30]/10 text-[#FF3B30]'">
+                        <span x-text="message"></span>
+                    </div>
+
+                    <!-- Form -->
+                    <form @submit.prevent="submitLogin" class="space-y-lg">
+                        <div class="form-control">
+                            <label class="label pb-sm">
+                                <span class="label-text text-[15px] font-medium">学号</span>
+                            </label>
+                            <input type="text"
+                                   x-model="form.user_account"
+                                   class="input input-bordered rounded-md text-[15px] transition-all duration-fast focus:border-cookie"
+                                   required>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label pb-sm">
+                                <span class="label-text text-[15px] font-medium">密码</span>
+                            </label>
+                            <input type="password"
+                                   x-model="form.user_password"
+                                   class="input input-bordered rounded-md text-[15px] transition-all duration-fast focus:border-cookie"
+                                   required>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label pb-sm">
+                                <span class="label-text text-[15px] font-medium">钉钉Webhook</span>
+                            </label>
+                            <input type="text"
+                                   x-model="form.dingtalk_webhook"
+                                   placeholder="https://oapi.dingtalk.com/robot/send?..."
+                                   class="input input-bordered rounded-md text-[15px] transition-all duration-fast focus:border-cookie"
+                                   required>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label pb-sm">
+                                <span class="label-text text-[15px] font-medium">钉钉签名密钥</span>
+                            </label>
+                            <input type="text"
+                                   x-model="form.dingtalk_secret"
+                                   placeholder="SEC..."
+                                   class="input input-bordered rounded-md text-[15px] transition-all duration-fast focus:border-cookie"
+                                   required>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label cursor-pointer justify-start gap-md py-sm">
+                                <input type="checkbox"
+                                       x-model="form.enabled"
+                                       class="toggle toggle-cookie">
+                                <div>
+                                    <span class="label-text text-[15px] font-medium block">启用成绩监控</span>
+                                    <span class="label-text-alt text-[13px] text-base-content/60">关闭后将不会自动检测成绩变化</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label cursor-pointer justify-start gap-sm py-0">
+                                <input type="checkbox"
+                                       x-model="agreed"
+                                       class="checkbox checkbox-sm border-cookie [--chkbg:#885021] [--chkfg:white]"
+                                       required>
+                                <span class="label-text text-[15px]">我已阅读并同意用户协议与安全声明</span>
+                            </label>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-cookie w-full rounded-md text-[16px] font-semibold transition-all duration-fast"
+                                :disabled="loading || !agreed"
+                                :class="{'opacity-50 cursor-not-allowed': loading || !agreed}">
+                            <span x-show="!loading">登录并开始监控</span>
+                            <span x-show="loading" class="loading loading-spinner loading-sm"></span>
+                            <span x-show="loading">登录中...</span>
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            <div class="link-text">
-                <a href="/admin">进入管理后台 →</a>
+            <!-- Link -->
+            <div class="text-center mt-xl">
+                <a href="/admin" class="text-[15px] text-cookie hover:underline transition-all duration-fast">进入管理后台 →</a>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
     <script>
-        const { createApp } = Vue;
+        function loginApp() {
+            return {
+                form: {
+                    user_account: '',
+                    user_password: '',
+                    dingtalk_webhook: '',
+                    dingtalk_secret: '',
+                    enabled: true
+                },
+                agreed: false,
+                loading: false,
+                message: '',
+                messageType: '',
 
-        createApp({
-            data() {
-                return {
-                    form: {
-                        user_account: '',
-                        user_password: '',
-                        dingtalk_webhook: '',
-                        dingtalk_secret: ''
-                    },
-                    agreed: false,
-                    loading: false
-                }
-            },
-            methods: {
-                async onSubmit() {
-                    if (!this.agreed) {
-                        vant.showToast('请先同意用户协议');
-                        return;
-                    }
-
+                async submitLogin() {
                     this.loading = true;
+                    this.message = '';
 
                     try {
                         const response = await fetch('/api/login', {
@@ -210,24 +250,23 @@
                         const data = await response.json();
 
                         if (data.success) {
-                            vant.showSuccessToast(data.message);
-                            this.form = {
-                                user_account: '',
-                                user_password: '',
-                                dingtalk_webhook: '',
-                                dingtalk_secret: ''
-                            };
+                            this.messageType = 'success';
+                            this.message = data.message;
+                            this.form = { user_account: '', user_password: '', dingtalk_webhook: '', dingtalk_secret: '', enabled: true };
+                            this.agreed = false;
                         } else {
-                            vant.showFailToast(data.message);
+                            this.messageType = 'error';
+                            this.message = data.message;
                         }
                     } catch (error) {
-                        vant.showFailToast('请求失败: ' + error.message);
+                        this.messageType = 'error';
+                        this.message = '请求失败: ' + error.message;
                     } finally {
                         this.loading = false;
                     }
                 }
             }
-        }).use(vant).mount('#app');
+        }
     </script>
 </body>
 </html>
