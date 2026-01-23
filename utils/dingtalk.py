@@ -98,8 +98,38 @@ def notify_session_expired(webhook_url, secret):
     return send_dingtalk_message(webhook_url, secret, message)
 
 
-def notify_relogin_success(webhook_url, secret):
-    """通知自动重新登录成功"""
-    message = "【自动登录成功】\n检测到登录过期，已自动重新登录成功，成绩监控继续正常运行。"
-    return send_dingtalk_message(webhook_url, secret, message)
+def notify_init_scores(webhook_url, secret, scores):
+    """初始化时上报当前所有成绩"""
+    if not scores:
+        message = "【成绩监控初始化成功】\n\n当前暂无成绩记录。\n\n后台将每隔一段时间检测一次是否有新成绩，发现新成绩会自动通过钉钉上报。"
+        return send_dingtalk_message(webhook_url, secret, message)
+
+    # 构建markdown格式的消息
+    message = "# 📋 成绩监控初始化成功\n\n"
+    message += f"当前共有 **{len(scores)}** 门成绩记录：\n\n"
+
+    for course in scores:
+        message += f"- **{course['课程名称']}**: {course['成绩']} (绩点:{course['绩点']}, 学分:{course['学分']})\n"
+
+    message += "\n---\n\n"
+    message += "✅ 成绩监控已启动，后台将每隔一段时间检测一次是否有新成绩，发现新成绩会自动通过钉钉上报。"
+
+    timestamp, sign = generate_sign(secret)
+    url = f"{webhook_url}&timestamp={timestamp}&sign={sign}"
+
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "msgtype": "markdown",
+        "markdown": {
+            "title": "成绩监控初始化成功",
+            "text": message
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=10)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"发送钉钉消息失败: {str(e)}")
+        return False
 

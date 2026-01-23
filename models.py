@@ -1,7 +1,12 @@
 import sqlite3
 import hashlib
 import os
-from datetime import datetime
+import time
+
+
+def get_timestamp():
+    """获取当前时间戳（秒）"""
+    return int(time.time())
 
 
 class DatabaseManager:
@@ -20,15 +25,15 @@ class DatabaseManager:
             'dingtalk_secret': 'TEXT',
             'enabled': 'INTEGER DEFAULT 1',
             'session_expired': 'INTEGER DEFAULT 0',
-            'created_at': 'TEXT DEFAULT CURRENT_TIMESTAMP',
-            'updated_at': 'TEXT DEFAULT CURRENT_TIMESTAMP'
+            'created_at': 'INTEGER',
+            'updated_at': 'INTEGER'
         },
         'scores': {
             'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             'user_account': 'TEXT NOT NULL',
             'page_hash': 'TEXT NOT NULL',
             'reported_course_ids': 'TEXT DEFAULT "[]"',
-            'updated_at': 'TEXT DEFAULT CURRENT_TIMESTAMP'
+            'updated_at': 'INTEGER'
         }
     }
 

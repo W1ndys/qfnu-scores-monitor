@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
-from models import init_db, DatabaseManager
+from models import init_db, DatabaseManager, get_timestamp
 from utils.crypto import generate_key, encrypt_session
-from utils.score_monitor import serialize_session
+from utils.score_monitor import serialize_session, fetch_scores, restore_session
+from utils.dingtalk import notify_init_scores
 from dotenv import load_dotenv
 from main import simulate_login
 from utils.session_manager import get_session, reset_session
@@ -68,12 +69,14 @@ def api_import():
         encrypted_session = encrypt_session(session_data, encryption_key)
         encrypted_password = encrypt_session(user_password, encryption_key)
 
+        timestamp = get_timestamp()
+
         with DatabaseManager() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT OR REPLACE INTO users (user_account, encrypted_password, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, enabled, session_expired)
-                VALUES (?, ?, ?, ?, ?, ?, 1, 0)
+                INSERT OR REPLACE INTO users (user_account, encrypted_password, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, enabled, session_expired, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, 1, 0, ?, ?)
             """,
                 (
                     user_account,
@@ -82,8 +85,19 @@ def api_import():
                     encryption_key,
                     dingtalk_webhook,
                     dingtalk_secret,
+                    timestamp,
+                    timestamp,
                 ),
             )
+
+        # 首次获取成绩并上报初始化信息
+        try:
+            restored_session = restore_session(encrypted_session, encryption_key)
+            page_hash, scores, expired = fetch_scores(restored_session)
+            if scores and not expired:
+                notify_init_scores(dingtalk_webhook, dingtalk_secret, scores)
+        except Exception as e:
+            pass  # 初始化获取成绩失败不影响导入
 
         return jsonify({"success": True, "message": f"用户 {user_account} 导入成功，已开始监控"})
 

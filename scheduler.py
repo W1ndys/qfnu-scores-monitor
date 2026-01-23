@@ -1,7 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from models import DatabaseManager
 from utils.score_monitor import restore_session, fetch_scores, compare_scores, serialize_session
-from utils.dingtalk import notify_new_scores, notify_session_expired, notify_relogin_success
+from utils.dingtalk import notify_new_scores, notify_session_expired
 from utils.crypto import encrypt_session, decrypt_session
 from utils.logger import setup_logger
 
@@ -62,13 +62,12 @@ def handle_expired_session(cursor, user, dingtalk_webhook, dingtalk_secret):
     new_encrypted_session = try_relogin(user_account, encrypted_password, encryption_key)
 
     if new_encrypted_session:
-        # 更新 session
+        # 更新 session（静默重登，不通知用户）
         cursor.execute(
             "UPDATE users SET encrypted_session = ?, session_expired = 0 WHERE user_account = ?",
             (new_encrypted_session, user_account),
         )
         logger.info(f"用户 {user_account} Session 已自动更新")
-        notify_relogin_success(dingtalk_webhook, dingtalk_secret)
         return True
     else:
         # 登录失败，标记过期

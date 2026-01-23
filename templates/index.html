@@ -331,8 +331,8 @@ SECxxxxxxxxxxxxxxx"
                                 </div>
                             </div>
                             <div class="user-card-info">
-                                <p>创建时间：[[ user.created_at ]]</p>
-                                <p>更新时间：[[ user.updated_at ]]</p>
+                                <p>创建时间：[[ formatTime(user.created_at) ]]</p>
+                                <p>更新时间：[[ formatTime(user.updated_at) ]]</p>
                             </div>
                             <div class="user-card-actions">
                                 <el-button
@@ -388,6 +388,20 @@ SECxxxxxxxxxxxxxxx"
                 const loading = ref(false)
                 const importing = ref(false)
                 const checking = ref(false)
+
+                // 格式化时间戳
+                const formatTime = (timestamp) => {
+                    if (!timestamp) return '-'
+                    const date = new Date(timestamp * 1000)
+                    return date.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })
+                }
 
                 // 统计数据
                 const stats = computed(() => {
@@ -558,6 +572,7 @@ SECxxxxxxxxxxxxxxx"
                     importing,
                     checking,
                     stats,
+                    formatTime,
                     loadUsers,
                     importUser,
                     toggleUser,
