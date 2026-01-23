@@ -93,6 +93,13 @@ def notify_new_scores(webhook_url, secret, new_courses):
 
 
 def notify_session_expired(webhook_url, secret):
-    """通知session过期"""
-    message = "【登录过期提醒】\n您的教务系统登录已过期，请重新登录以继续监控成绩。"
+    """通知session过期且自动登录失败"""
+    message = "【登录过期提醒】\n您的教务系统登录已过期，自动重新登录失败（验证码识别3次均失败），请手动重新导入账号信息。"
     return send_dingtalk_message(webhook_url, secret, message)
+
+
+def notify_relogin_success(webhook_url, secret):
+    """通知自动重新登录成功"""
+    message = "【自动登录成功】\n检测到登录过期，已自动重新登录成功，成绩监控继续正常运行。"
+    return send_dingtalk_message(webhook_url, secret, message)
+
