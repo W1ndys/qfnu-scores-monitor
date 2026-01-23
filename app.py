@@ -123,13 +123,22 @@ def api_toggle_user(user_account):
     return jsonify({"success": True})
 
 
+@app.route("/api/users/<user_account>/check", methods=["POST"])
+def api_check_user(user_account):
+    """对单个用户进行一次成绩检测"""
+    from scheduler import check_single_user
+
+    result = check_single_user(user_account)
+    return jsonify(result)
+
+
 @app.route("/api/check", methods=["POST"])
 def api_check():
-    """手动触发检测"""
+    """手动触发检测所有用户"""
     from scheduler import check_all_users
 
     check_all_users()
-    return jsonify({"success": True, "message": "检测已触发"})
+    return jsonify({"success": True, "message": "全部用户检测已触发"})
 
 
 if __name__ == "__main__":
