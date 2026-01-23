@@ -3,615 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>卷卷的小工具 - 成绩监控</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>成绩监控管理面板 - 卷卷的小工具</title>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
     <style>
-        /* ========== CSS Variables - Design System ========== */
-        :root {
-            /* 主色 - 曲奇棕 */
-            --primary-color: #885021;
-            --primary-color-light: #8B5A2B;
-            --primary-color-pale: #A67C52;
-            --primary-color-dark: #5D3615;
-            --primary-color-opacity-10: rgba(136, 80, 33, 0.1);
-            --primary-color-opacity-5: rgba(136, 80, 33, 0.05);
-
-            /* 辅助色 */
-            --cream-color: #F5E6D3;
-            --caramel-color: #C4956A;
-
-            /* 语义色 (iOS 标准) */
-            --success-color: #34C759;
-            --warning-color: #FF9500;
-            --danger-color: #FF3B30;
-            --info-color: #007AFF;
-
-            /* 中性色 */
-            --text-primary: #1C1C1E;
-            --text-secondary: #8E8E93;
-            --text-tertiary: #C7C7CC;
-            --bg-primary: #F2F2F7;
-            --bg-secondary: #FFFFFF;
-            --bg-tertiary: #E5E5EA;
-
-            /* 间距系统 (4px 基准) */
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 12px;
-            --spacing-lg: 16px;
-            --spacing-xl: 20px;
-            --spacing-xxl: 24px;
-
-            /* 圆角系统 */
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-full: 9999px;
-
-            /* 阴影系统 */
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-
-            /* 动画时长 */
-            --duration-fast: 150ms;
-            --duration-normal: 250ms;
-            --duration-slow: 350ms;
-
-            /* 缓动函数 */
-            --ease-out: cubic-bezier(0, 0, 0.2, 1);
-            --ease-in: cubic-bezier(0.4, 0, 1, 1);
-            --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* ========== Reset & Base ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ========== Layout ========== */
-        .container {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", sans-serif;
             min-height: 100vh;
-            padding: var(--spacing-xl) var(--spacing-lg);
         }
-
-        .container-inner {
-            max-width: 672px;
+        .app-header {
+            background: linear-gradient(135deg, #885021 0%, #a67c52 100%);
+            color: white;
+            padding: 24px 0;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        /* ========== Typography ========== */
-        .text-h1 {
-            font-size: 28px;
-            line-height: 1.2;
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title h1 {
+            font-size: 24px;
             font-weight: 600;
         }
-
-        .text-body {
-            font-size: 15px;
-            line-height: 1.5;
+        .header-title p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 24px;
         }
 
-        .text-caption {
-            font-size: 13px;
-            line-height: 1.4;
+        /* 统计卡片 */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
         }
-
-        .text-small {
-            font-size: 11px;
-            line-height: 1.3;
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-
-        .text-button {
-            font-size: 16px;
+        .stat-card .stat-value {
+            font-size: 32px;
             font-weight: 600;
+            color: #303133;
         }
-
-        .font-semibold {
-            font-weight: 600;
-        }
-
-        .font-medium {
-            font-weight: 500;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-primary {
-            color: var(--primary-color);
-        }
-
-        .text-secondary {
-            color: var(--text-secondary);
-        }
-
-        .text-tertiary {
-            color: var(--text-tertiary);
-        }
-
-        .leading-tight {
-            line-height: 1.2;
-        }
-
-        .leading-relaxed {
-            line-height: 1.625;
-        }
-
-        /* ========== Spacing ========== */
-        .mb-sm { margin-bottom: var(--spacing-sm); }
-        .mb-md { margin-bottom: var(--spacing-md); }
-        .mb-lg { margin-bottom: var(--spacing-lg); }
-        .mb-xl { margin-bottom: var(--spacing-xl); }
-        .mb-xxl { margin-bottom: var(--spacing-xxl); }
-
-        .p-md { padding: var(--spacing-md); }
-        .p-lg { padding: var(--spacing-lg); }
-
-        .pb-sm { padding-bottom: var(--spacing-sm); }
-
-        .gap-sm { gap: var(--spacing-sm); }
-        .gap-md { gap: var(--spacing-md); }
-
-        .space-y-1 > * + * {
+        .stat-card .stat-label {
+            font-size: 14px;
+            color: #909399;
             margin-top: 4px;
         }
+        .stat-card.primary .stat-value { color: #885021; }
+        .stat-card.success .stat-value { color: #67c23a; }
+        .stat-card.warning .stat-value { color: #e6a23c; }
+        .stat-card.danger .stat-value { color: #f56c6c; }
 
-        .space-y-lg > * + * {
-            margin-top: var(--spacing-lg);
+        /* 主内容区 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 24px;
         }
 
-        /* ========== Card ========== */
-        .card {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            transition: all var(--duration-normal) var(--ease-out);
+        /* 导入面板 */
+        .import-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: fit-content;
         }
-
-        .card:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        /* ========== Alert ========== */
-        .alert {
-            background-color: var(--primary-color-opacity-5);
-            border-left: 4px solid var(--primary-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-        }
-
-        .alert h3 {
-            font-size: 15px;
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #ebeef5;
             font-weight: 600;
-            margin-bottom: var(--spacing-sm);
-            color: var(--text-primary);
-        }
-
-        .alert-content {
-            font-size: 13px;
-            color: rgba(28, 28, 30, 0.7);
-            line-height: 1.625;
-        }
-
-        /* ========== Message ========== */
-        .message {
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-            font-size: 14px;
-            transition: all var(--duration-normal) var(--ease-out);
-        }
-
-        .message-success {
-            background-color: rgba(52, 199, 89, 0.1);
-            color: var(--success-color);
-        }
-
-        .message-error {
-            background-color: rgba(255, 59, 48, 0.1);
-            color: var(--danger-color);
-        }
-
-        /* ========== Form ========== */
-        .form {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-lg);
-        }
-
-        .form-control {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-label {
-            font-size: 15px;
-            font-weight: 500;
-            margin-bottom: var(--spacing-sm);
-            color: var(--text-primary);
-        }
-
-        .form-label-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .tutorial-link {
-            font-size: 13px;
-            color: var(--info-color);
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .tutorial-link:hover {
-            text-decoration: underline;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 15px;
-            border: 1px solid var(--bg-tertiary);
-            border-radius: var(--radius-md);
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            transition: all var(--duration-fast) var(--ease-out);
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px var(--primary-color-opacity-10);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-tertiary);
-        }
-
-        /* ========== Checkbox & Toggle ========== */
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            cursor: pointer;
-        }
-
-        .checkbox {
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--primary-color);
-            border-radius: 4px;
-            cursor: pointer;
-            accent-color: var(--primary-color);
-        }
-
-        .toggle-wrapper {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--spacing-md);
-            cursor: pointer;
-            padding: var(--spacing-sm) 0;
-        }
-
-        .toggle {
-            position: relative;
-            width: 51px;
-            height: 31px;
-            appearance: none;
-            background-color: var(--bg-tertiary);
-            border-radius: var(--radius-full);
-            cursor: pointer;
-            transition: background-color var(--duration-fast) var(--ease-out);
-            flex-shrink: 0;
-        }
-
-        .toggle::before {
-            content: '';
-            position: absolute;
-            width: 27px;
-            height: 27px;
-            border-radius: 50%;
-            background-color: white;
-            top: 2px;
-            left: 2px;
-            transition: transform var(--duration-fast) var(--ease-out);
-        }
-
-        .toggle:checked {
-            background-color: var(--primary-color);
-        }
-
-        .toggle:checked::before {
-            transform: translateX(20px);
-        }
-
-        .toggle-label {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .toggle-label-text {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .toggle-label-subtext {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        /* ========== Button ========== */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-sm);
-            padding: 12px 24px;
             font-size: 16px;
+            color: #303133;
+        }
+        .panel-body {
+            padding: 20px;
+        }
+        .import-hint {
+            background: #f5f7fa;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #606266;
+            line-height: 1.8;
+        }
+        .import-hint code {
+            background: #e4e7ed;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .import-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* 用户列表面板 */
+        .users-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .panel-header-with-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 用户卡片网格 */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .user-card {
+            border: 1px solid #ebeef5;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+        .user-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #dcdfe6;
+        }
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .user-account {
+            font-size: 18px;
             font-weight: 600;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--ease-out);
-            text-decoration: none;
+            color: #303133;
+            font-family: monospace;
+        }
+        .user-card-status {
+            display: flex;
+            gap: 8px;
+        }
+        .user-card-info {
+            font-size: 13px;
+            color: #909399;
+            margin-bottom: 12px;
+        }
+        .user-card-info p {
+            margin: 4px 0;
+        }
+        .user-card-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #ebeef5;
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #909399;
         }
-
-        .btn-primary:hover {
-            background-color: var(--primary-color-light);
-        }
-
-        .btn-primary:active {
-            background-color: var(--primary-color-dark);
-            transform: scale(0.98);
-        }
-
-        .btn-primary:disabled {
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
             opacity: 0.5;
-            cursor: not-allowed;
         }
 
-        .btn-full {
-            width: 100%;
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
-
-        /* ========== Link ========== */
-        .link {
-            color: var(--primary-color);
-            text-decoration: none;
-            transition: all var(--duration-fast) var(--ease-out);
-        }
-
-        .link:hover {
-            text-decoration: underline;
-        }
-
-        /* ========== Loading Spinner ========== */
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ========== Scrollbar ========== */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--text-tertiary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-secondary);
-        }
-
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: var(--text-tertiary) var(--bg-primary);
-        }
-
-        /* ========== Utilities ========== */
-        .hidden {
-            display: none;
+        @media (max-width: 768px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container" x-data="loginApp()">
-        <div class="container-inner">
-            <!-- Logo Section -->
-            <div class="text-center mb-xxl">
-                <h1 class="text-h1 font-semibold mb-sm text-primary leading-tight">🍪 卷卷的小工具</h1>
-                <p class="text-body text-secondary">成绩监控系统</p>
+    <div id="app">
+        <!-- 顶部栏 -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <div>
+                        <h1>🍪 卷卷的小工具</h1>
+                        <p>成绩监控管理面板（内网版）</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <el-button @click="loadUsers" :loading="loading" round>
+                        <el-icon><Refresh /></el-icon>
+                        刷新数据
+                    </el-button>
+                    <el-button type="warning" @click="triggerCheck" :loading="checking" round>
+                        <el-icon><Search /></el-icon>
+                        手动检测
+                    </el-button>
+                </div>
             </div>
+        </header>
 
-            <!-- Main Card -->
-            <div class="card">
-                <div class="p-lg">
-                    <!-- Agreement -->
-                    <div class="alert mb-lg">
-                        <h3>用户协议与安全声明</h3>
-                        <div class="alert-content space-y-1">
-                            <p>1. 本系统仅存储您的登录Session用于自动查询成绩，不保存学号和密码。</p>
-                            <p>2. 系统使用学号哈希值作为用户标识，用于存储加密Session和启用状态。</p>
-                            <p>3. Session数据使用AES-256-GCM加密算法存储，每个用户使用独立的随机密钥。</p>
-                            <p>4. 系统会定时检测成绩变化，发现新成绩时通过钉钉推送通知。</p>
-                            <p>5. 当Session过期时，系统会停止监控并发送提醒，需要重新登录。</p>
-                            <p>6. 请妥善保管您的钉钉Webhook地址和签名密钥，避免泄露。</p>
-                        </div>
-                    </div>
-
-                    <!-- Message -->
-                    <div x-show="message" class="message mb-lg" :class="messageType === 'success' ? 'message-success' : 'message-error'">
-                        <span x-text="message"></span>
-                    </div>
-
-                    <!-- Form -->
-                    <form @submit.prevent="submitLogin" class="form">
-                        <div class="form-control">
-                            <label class="form-label">学号</label>
-                            <input type="text"
-                                   x-model="form.user_account"
-                                   autocomplete="username"
-                                   class="form-input"
-                                   required>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="form-label">密码</label>
-                            <input type="password"
-                                   x-model="form.user_password"
-                                   autocomplete="current-password"
-                                   class="form-input"
-                                   required>
-                        </div>
-
-                        <div class="form-control">
-                            <div class="form-label-row">
-                                <label class="form-label" style="margin-bottom: 0;">钉钉Webhook</label>
-                                <a href="https://my.feishu.cn/docx/IBuLdPrn7oxxcYxXtmBcmET2nmX?from=from_copylink" target="_blank" class="tutorial-link">
-                                    📖 获取教程
-                                </a>
-                            </div>
-                            <input type="text"
-                                   x-model="form.dingtalk_webhook"
-                                   placeholder="https://oapi.dingtalk.com/robot/send?..."
-                                   class="form-input"
-                                   required>
-                        </div>
-
-                        <div class="form-control">
-                            <div class="form-label-row">
-                                <label class="form-label" style="margin-bottom: 0;">钉钉签名密钥</label>
-                            </div>
-                            <input type="text"
-                                   x-model="form.dingtalk_secret"
-                                   placeholder="SEC..."
-                                   class="form-input"
-                                   required>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="toggle-wrapper">
-                                <input type="checkbox"
-                                       x-model="form.enabled"
-                                       class="toggle">
-                                <div class="toggle-label">
-                                    <span class="toggle-label-text">启用成绩监控</span>
-                                    <span class="toggle-label-subtext">关闭后将不会自动检测成绩变化</span>
-                                </div>
-                            </label>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="checkbox-wrapper">
-                                <input type="checkbox"
-                                       x-model="agreed"
-                                       class="checkbox"
-                                       required>
-                                <span class="text-body">我已阅读并同意用户协议与安全声明</span>
-                            </label>
-                        </div>
-
-                        <button type="submit"
-                                class="btn btn-primary btn-full text-button"
-                                :disabled="loading || !agreed">
-                            <span x-show="!loading">登录并开始监控</span>
-                            <span x-show="loading" class="loading-spinner"></span>
-                            <span x-show="loading">登录中...</span>
-                        </button>
-                    </form>
+        <div class="container">
+            <!-- 统计卡片 -->
+            <div class="stats-row">
+                <div class="stat-card primary">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">总用户数</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value">{{ stats.enabled }}</div>
+                    <div class="stat-label">监控中</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value">{{ stats.expired }}</div>
+                    <div class="stat-label">Session已过期</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-value">{{ stats.disabled }}</div>
+                    <div class="stat-label">已禁用</div>
                 </div>
             </div>
 
-            <!-- Link -->
-            <div class="text-center mb-xl">
-                <a href="/admin" class="link text-body">进入管理后台 →</a>
+            <!-- 主内容区 -->
+            <div class="main-content">
+                <!-- 导入面板 -->
+                <div class="import-panel">
+                    <div class="panel-header">导入新用户</div>
+                    <div class="panel-body">
+                        <div class="import-hint">
+                            <strong>输入格式（4行）：</strong><br>
+                            第1行：<code>学号</code><br>
+                            第2行：<code>密码</code><br>
+                            第3行：<code>钉钉Webhook URL</code><br>
+                            第4行：<code>钉钉签名密钥</code>
+                        </div>
+
+                        <el-input
+                            v-model="importText"
+                            type="textarea"
+                            :rows="8"
+                            placeholder="202312345678
+your_password
+https://oapi.dingtalk.com/robot/send?access_token=xxx
+SECxxxxxxxxxxxxxxx"
+                            style="font-family: monospace;"
+                        ></el-input>
+
+                        <div class="import-actions">
+                            <el-button type="primary" @click="importUser" :loading="importing" style="flex: 1;">
+                                <el-icon><Upload /></el-icon>
+                                导入用户
+                            </el-button>
+                            <el-button @click="importText = ''">
+                                <el-icon><Delete /></el-icon>
+                                清空
+                            </el-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户列表面板 -->
+                <div class="users-panel">
+                    <div class="panel-header panel-header-with-actions">
+                        <span>用户列表</span>
+                        <el-tag type="info">共 {{ users.length }} 个用户</el-tag>
+                    </div>
+
+                    <!-- 用户卡片网格 -->
+                    <div class="users-grid" v-if="users.length > 0" v-loading="loading">
+                        <div class="user-card" v-for="user in users" :key="user.user_account">
+                            <div class="user-card-header">
+                                <span class="user-account">{{ user.user_account }}</span>
+                                <div class="user-card-status">
+                                    <el-tag size="small" :type="user.enabled ? 'success' : 'info'">
+                                        {{ user.enabled ? '监控中' : '已禁用' }}
+                                    </el-tag>
+                                    <el-tag size="small" :type="user.session_expired ? 'danger' : 'success'">
+                                        {{ user.session_expired ? 'Session过期' : 'Session正常' }}
+                                    </el-tag>
+                                </div>
+                            </div>
+                            <div class="user-card-info">
+                                <p>创建时间：{{ user.created_at }}</p>
+                                <p>更新时间：{{ user.updated_at }}</p>
+                            </div>
+                            <div class="user-card-actions">
+                                <el-button
+                                    size="small"
+                                    :type="user.enabled ? 'warning' : 'success'"
+                                    @click="toggleUser(user.user_account)"
+                                    style="flex: 1;"
+                                >
+                                    <el-icon><Switch /></el-icon>
+                                    {{ user.enabled ? '暂停监控' : '启用监控' }}
+                                </el-button>
+                                <el-button
+                                    size="small"
+                                    type="danger"
+                                    @click="deleteUser(user.user_account)"
+                                >
+                                    <el-icon><Delete /></el-icon>
+                                    删除
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空状态 -->
+                    <div class="empty-state" v-if="!loading && users.length === 0">
+                        <div class="icon">📭</div>
+                        <p>暂无用户数据</p>
+                        <p style="font-size: 13px; margin-top: 8px;">请在左侧导入用户开始监控</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function loginApp() {
-            return {
-                form: {
-                    user_account: '',
-                    user_password: '',
-                    dingtalk_webhook: '',
-                    dingtalk_secret: '',
-                    enabled: true
-                },
-                agreed: false,
-                loading: false,
-                message: '',
-                messageType: '',
+        const { createApp, ref, computed, onMounted } = Vue
+        const { ElMessage, ElMessageBox } = ElementPlus
 
-                async submitLogin() {
-                    this.loading = true;
-                    this.message = '';
+        createApp({
+            setup() {
+                const importText = ref('')
+                const users = ref([])
+                const loading = ref(false)
+                const importing = ref(false)
+                const checking = ref(false)
 
+                // 统计数据
+                const stats = computed(() => {
+                    const total = users.value.length
+                    const enabled = users.value.filter(u => u.enabled && !u.session_expired).length
+                    const expired = users.value.filter(u => u.session_expired).length
+                    const disabled = users.value.filter(u => !u.enabled).length
+                    return { total, enabled, expired, disabled }
+                })
+
+                // 加载用户列表
+                const loadUsers = async () => {
+                    loading.value = true
                     try {
-                        const response = await fetch('/api/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.form)
-                        });
-
-                        const data = await response.json();
-
+                        const response = await fetch('/api/users')
+                        const data = await response.json()
                         if (data.success) {
-                            this.messageType = 'success';
-                            this.message = data.message;
-                            this.form = { user_account: '', user_password: '', dingtalk_webhook: '', dingtalk_secret: '', enabled: true };
-                            this.agreed = false;
-                        } else {
-                            this.messageType = 'error';
-                            this.message = data.message;
+                            users.value = data.users
                         }
                     } catch (error) {
-                        this.messageType = 'error';
-                        this.message = '请求失败: ' + error.message;
+                        ElMessage.error('加载失败: ' + error.message)
                     } finally {
-                        this.loading = false;
+                        loading.value = false
                     }
                 }
+
+                // 导入用户
+                const importUser = async () => {
+                    if (!importText.value.trim()) {
+                        ElMessage.warning('请输入用户数据')
+                        return
+                    }
+
+                    importing.value = true
+                    try {
+                        const response = await fetch('/api/import', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: importText.value })
+                        })
+                        const data = await response.json()
+
+                        if (data.success) {
+                            ElMessage.success(data.message)
+                            importText.value = ''
+                            loadUsers()
+                        } else {
+                            ElMessage.error(data.message)
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message)
+                    } finally {
+                        importing.value = false
+                    }
+                }
+
+                // 切换用户状态
+                const toggleUser = async (userAccount) => {
+                    try {
+                        const response = await fetch(`/api/users/${userAccount}/toggle`, {
+                            method: 'POST'
+                        })
+                        const data = await response.json()
+
+                        if (data.success) {
+                            ElMessage.success('状态已更新')
+                            loadUsers()
+                        } else {
+                            ElMessage.error('操作失败')
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message)
+                    }
+                }
+
+                // 删除用户
+                const deleteUser = async (userAccount) => {
+                    try {
+                        await ElMessageBox.confirm(
+                            `确定要删除用户 ${userAccount} 吗？删除后该用户的所有数据将被清除。`,
+                            '确认删除',
+                            {
+                                confirmButtonText: '确认删除',
+                                cancelButtonText: '取消',
+                                type: 'warning',
+                                confirmButtonClass: 'el-button--danger'
+                            }
+                        )
+
+                        const response = await fetch(`/api/users/${userAccount}`, {
+                            method: 'DELETE'
+                        })
+                        const data = await response.json()
+
+                        if (data.success) {
+                            ElMessage.success(data.message)
+                            loadUsers()
+                        } else {
+                            ElMessage.error('删除失败')
+                        }
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            ElMessage.error('请求失败: ' + error.message)
+                        }
+                    }
+                }
+
+                // 手动触发检测
+                const triggerCheck = async () => {
+                    checking.value = true
+                    try {
+                        const response = await fetch('/api/check', { method: 'POST' })
+                        const data = await response.json()
+
+                        if (data.success) {
+                            ElMessage.success(data.message)
+                            // 检测后刷新列表以更新状态
+                            setTimeout(loadUsers, 1000)
+                        } else {
+                            ElMessage.error('检测失败')
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message)
+                    } finally {
+                        checking.value = false
+                    }
+                }
+
+                onMounted(() => {
+                    loadUsers()
+                })
+
+                return {
+                    importText,
+                    users,
+                    loading,
+                    importing,
+                    checking,
+                    stats,
+                    loadUsers,
+                    importUser,
+                    toggleUser,
+                    deleteUser,
+                    triggerCheck
+                }
             }
-        }
+        })
+        .use(ElementPlus)
+        .component('Refresh', ElementPlusIconsVue.Refresh)
+        .component('Search', ElementPlusIconsVue.Search)
+        .component('Upload', ElementPlusIconsVue.Upload)
+        .component('Delete', ElementPlusIconsVue.Delete)
+        .component('Switch', ElementPlusIconsVue.Switch)
+        .mount('#app')
     </script>
 </body>
 </html>
