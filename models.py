@@ -13,6 +13,7 @@ class DatabaseManager:
     SCHEMA = {
         'users': {
             'user_account': 'TEXT PRIMARY KEY',
+            'encrypted_password': 'TEXT',
             'encrypted_session': 'TEXT NOT NULL',
             'encryption_key': 'TEXT NOT NULL',
             'dingtalk_webhook': 'TEXT',
