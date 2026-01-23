@@ -17,7 +17,7 @@ load_dotenv()
 
 def handle_captcha():
     """
-    获取并识别验证码，识别失败时重新获取图片重试
+    获取并识别验证码（单次尝试）
     返回: 识别出的验证码字符串，失败返回 None
     """
     session = get_session()
@@ -25,41 +25,37 @@ def handle_captcha():
     # 验证码请求URL
     RandCodeUrl = "http://zhjw.qfnu.edu.cn/jsxsd/verifycode.servlet"
 
-    for attempt in range(1, 4):
+    try:
+        response = session.get(RandCodeUrl, timeout=10)
+
+        if response.status_code != 200:
+            logger.warning(f"请求验证码失败，状态码: {response.status_code}")
+            return None
+
+        # 检查响应是否为图片
+        content_type = response.headers.get('Content-Type', '')
+        if 'image' not in content_type:
+            logger.warning(f"验证码响应不是图片，Content-Type: {content_type}")
+            return None
+
+        if len(response.content) < 100:
+            logger.warning(f"验证码响应内容过短，长度: {len(response.content)}")
+            return None
+
         try:
-            response = session.get(RandCodeUrl, timeout=10)
-
-            if response.status_code != 200:
-                logger.warning(f"请求验证码失败 (第{attempt}次)，状态码: {response.status_code}")
-                continue
-
-            # 检查响应是否为图片
-            content_type = response.headers.get('Content-Type', '')
-            if 'image' not in content_type:
-                logger.warning(f"验证码响应不是图片 (第{attempt}次)，Content-Type: {content_type}")
-                continue
-
-            if len(response.content) < 100:
-                logger.warning(f"验证码响应内容过短 (第{attempt}次)，长度: {len(response.content)}")
-                continue
-
-            try:
-                image = Image.open(BytesIO(response.content))
-            except Exception as e:
-                logger.warning(f"验证码图片解析失败 (第{attempt}次): {e}")
-                continue
-
-            result = get_ocr_res(image)
-            if result:
-                return result
-
-            logger.warning(f"验证码识别失败，重新获取 (第{attempt}次)")
-
+            image = Image.open(BytesIO(response.content))
         except Exception as e:
-            logger.warning(f"获取验证码异常 (第{attempt}次): {e}")
+            logger.warning(f"验证码图片解析失败: {e}")
+            return None
 
-    logger.error("验证码获取/识别失败，已达最大重试次数")
-    return None
+        result = get_ocr_res(image)
+        if not result:
+            logger.warning("验证码识别失败")
+        return result
+
+    except Exception as e:
+        logger.warning(f"获取验证码异常: {e}")
+        return None
 
 
 def generate_encoded_string(user_account, user_password):
