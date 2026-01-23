@@ -337,12 +337,20 @@ SECxxxxxxxxxxxxxxx"
                             <div class="user-card-actions">
                                 <el-button
                                     size="small"
+                                    type="primary"
+                                    @click="checkUser(user.user_account)"
+                                    :loading="user.checking"
+                                >
+                                    <el-icon><Search /></el-icon>
+                                    检测
+                                </el-button>
+                                <el-button
+                                    size="small"
                                     :type="user.enabled ? 'warning' : 'success'"
                                     @click="toggleUser(user.user_account)"
-                                    style="flex: 1;"
                                 >
                                     <el-icon><Switch /></el-icon>
-                                    [[ user.enabled ? '暂停监控' : '启用监控' ]]
+                                    [[ user.enabled ? '暂停' : '启用' ]]
                                 </el-button>
                                 <el-button
                                     size="small"
@@ -455,6 +463,37 @@ SECxxxxxxxxxxxxxxx"
                     }
                 }
 
+                // 检测单个用户
+                const checkUser = async (userAccount) => {
+                    // 设置该用户的 checking 状态
+                    const user = users.value.find(u => u.user_account === userAccount)
+                    if (user) user.checking = true
+
+                    try {
+                        const response = await fetch(`/api/users/${userAccount}/check`, {
+                            method: 'POST'
+                        })
+                        const data = await response.json()
+
+                        if (data.success) {
+                            if (data.status === 'new_scores') {
+                                ElMessage.success(data.message)
+                            } else if (data.status === 'expired') {
+                                ElMessage.warning(data.message)
+                            } else {
+                                ElMessage.info(data.message)
+                            }
+                            loadUsers()
+                        } else {
+                            ElMessage.error(data.message || '检测失败')
+                        }
+                    } catch (error) {
+                        ElMessage.error('请求失败: ' + error.message)
+                    } finally {
+                        if (user) user.checking = false
+                    }
+                }
+
                 // 删除用户
                 const deleteUser = async (userAccount) => {
                     try {
@@ -522,6 +561,7 @@ SECxxxxxxxxxxxxxxx"
                     loadUsers,
                     importUser,
                     toggleUser,
+                    checkUser,
                     deleteUser,
                     triggerCheck
                 }
