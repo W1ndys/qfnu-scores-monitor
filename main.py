@@ -17,27 +17,39 @@ load_dotenv()
 
 def handle_captcha():
     """
-    获取并识别验证码
-    返回: 识别出的验证码字符串
+    获取并识别验证码，识别失败时重新获取图片重试
+    返回: 识别出的验证码字符串，失败返回 None
     """
     session = get_session()
 
     # 验证码请求URL
     RandCodeUrl = "http://zhjw.qfnu.edu.cn/jsxsd/verifycode.servlet"
 
-    response = session.get(RandCodeUrl)
+    for attempt in range(1, 4):
+        try:
+            response = session.get(RandCodeUrl, timeout=10)
 
-    if response.status_code != 200:
-        logger.error(f"请求验证码失败，状态码: {response.status_code}")
-        return None
+            if response.status_code != 200:
+                logger.warning(f"请求验证码失败 (第{attempt}次)，状态码: {response.status_code}")
+                continue
 
-    try:
-        image = Image.open(BytesIO(response.content))
-    except Exception as e:
-        logger.error(f"无法识别图像文件: {e}")
-        return None
+            try:
+                image = Image.open(BytesIO(response.content))
+            except Exception as e:
+                logger.warning(f"无法解析验证码图像 (第{attempt}次): {e}")
+                continue
 
-    return get_ocr_res(image)
+            result = get_ocr_res(image)
+            if result:
+                return result
+
+            logger.warning(f"验证码识别失败，重新获取 (第{attempt}次)")
+
+        except Exception as e:
+            logger.warning(f"获取验证码异常 (第{attempt}次): {e}")
+
+    logger.error("验证码获取/识别失败，已达最大重试次数")
+    return None
 
 
 def generate_encoded_string(user_account, user_password):
@@ -105,6 +117,10 @@ def simulate_login(user_account, user_password):
 
     for attempt in range(3):
         random_code = handle_captcha()
+        if not random_code:
+            logger.warning(f"验证码获取失败，重试第 {attempt + 1} 次")
+            continue
+
         logger.info(f"验证码: {random_code}")
         encoded = generate_encoded_string(user_account, user_password)
         logger.info(f"encoded: {encoded}")
@@ -114,6 +130,9 @@ def simulate_login(user_account, user_password):
         if response.status_code == 200:
             if "验证码错误" in response.text:
                 logger.warning(f"验证码识别错误，重试第 {attempt + 1} 次")
+                continue
+            if "用户登录" in response.text:
+                logger.warning(f"登录失败（响应包含用户登录页面），重试第 {attempt + 1} 次")
                 continue
             if "密码错误" in response.text:
                 raise Exception("用户名或密码错误")
