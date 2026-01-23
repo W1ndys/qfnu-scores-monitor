@@ -254,19 +254,19 @@
             <!-- 统计卡片 -->
             <div class="stats-row">
                 <div class="stat-card primary">
-                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-value">[[ stats.total ]]</div>
                     <div class="stat-label">总用户数</div>
                 </div>
                 <div class="stat-card success">
-                    <div class="stat-value">{{ stats.enabled }}</div>
+                    <div class="stat-value">[[ stats.enabled ]]</div>
                     <div class="stat-label">监控中</div>
                 </div>
                 <div class="stat-card warning">
-                    <div class="stat-value">{{ stats.expired }}</div>
+                    <div class="stat-value">[[ stats.expired ]]</div>
                     <div class="stat-label">Session已过期</div>
                 </div>
                 <div class="stat-card danger">
-                    <div class="stat-value">{{ stats.disabled }}</div>
+                    <div class="stat-value">[[ stats.disabled ]]</div>
                     <div class="stat-label">已禁用</div>
                 </div>
             </div>
@@ -313,26 +313,26 @@ SECxxxxxxxxxxxxxxx"
                 <div class="users-panel">
                     <div class="panel-header panel-header-with-actions">
                         <span>用户列表</span>
-                        <el-tag type="info">共 {{ users.length }} 个用户</el-tag>
+                        <el-tag type="info">共 [[ users.length ]] 个用户</el-tag>
                     </div>
 
                     <!-- 用户卡片网格 -->
                     <div class="users-grid" v-if="users.length > 0" v-loading="loading">
                         <div class="user-card" v-for="user in users" :key="user.user_account">
                             <div class="user-card-header">
-                                <span class="user-account">{{ user.user_account }}</span>
+                                <span class="user-account">[[ user.user_account ]]</span>
                                 <div class="user-card-status">
                                     <el-tag size="small" :type="user.enabled ? 'success' : 'info'">
-                                        {{ user.enabled ? '监控中' : '已禁用' }}
+                                        [[ user.enabled ? '监控中' : '已禁用' ]]
                                     </el-tag>
                                     <el-tag size="small" :type="user.session_expired ? 'danger' : 'success'">
-                                        {{ user.session_expired ? 'Session过期' : 'Session正常' }}
+                                        [[ user.session_expired ? 'Session过期' : 'Session正常' ]]
                                     </el-tag>
                                 </div>
                             </div>
                             <div class="user-card-info">
-                                <p>创建时间：{{ user.created_at }}</p>
-                                <p>更新时间：{{ user.updated_at }}</p>
+                                <p>创建时间：[[ user.created_at ]]</p>
+                                <p>更新时间：[[ user.updated_at ]]</p>
                             </div>
                             <div class="user-card-actions">
                                 <el-button
@@ -342,7 +342,7 @@ SECxxxxxxxxxxxxxxx"
                                     style="flex: 1;"
                                 >
                                     <el-icon><Switch /></el-icon>
-                                    {{ user.enabled ? '暂停监控' : '启用监控' }}
+                                    [[ user.enabled ? '暂停监控' : '启用监控' ]]
                                 </el-button>
                                 <el-button
                                     size="small"
@@ -371,7 +371,9 @@ SECxxxxxxxxxxxxxxx"
         const { createApp, ref, computed, onMounted } = Vue
         const { ElMessage, ElMessageBox } = ElementPlus
 
-        createApp({
+        const app = createApp({
+            // 修改 Vue 分隔符避免与 Jinja2 冲突
+            delimiters: ['[[', ']]'],
             setup() {
                 const importText = ref('')
                 const users = ref([])
@@ -525,13 +527,15 @@ SECxxxxxxxxxxxxxxx"
                 }
             }
         })
-        .use(ElementPlus)
-        .component('Refresh', ElementPlusIconsVue.Refresh)
-        .component('Search', ElementPlusIconsVue.Search)
-        .component('Upload', ElementPlusIconsVue.Upload)
-        .component('Delete', ElementPlusIconsVue.Delete)
-        .component('Switch', ElementPlusIconsVue.Switch)
-        .mount('#app')
+
+        app.config.compilerOptions.delimiters = ['[[', ']]']
+        app.use(ElementPlus)
+        app.component('Refresh', ElementPlusIconsVue.Refresh)
+        app.component('Search', ElementPlusIconsVue.Search)
+        app.component('Upload', ElementPlusIconsVue.Upload)
+        app.component('Delete', ElementPlusIconsVue.Delete)
+        app.component('Switch', ElementPlusIconsVue.Switch)
+        app.mount('#app')
     </script>
 </body>
 </html>
