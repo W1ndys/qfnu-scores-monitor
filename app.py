@@ -66,16 +66,18 @@ def api_import():
 
         encryption_key = generate_key()
         encrypted_session = encrypt_session(session_data, encryption_key)
+        encrypted_password = encrypt_session(user_password, encryption_key)
 
         with DatabaseManager() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT OR REPLACE INTO users (user_account, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, enabled, session_expired)
-                VALUES (?, ?, ?, ?, ?, 1, 0)
+                INSERT OR REPLACE INTO users (user_account, encrypted_password, encrypted_session, encryption_key, dingtalk_webhook, dingtalk_secret, enabled, session_expired)
+                VALUES (?, ?, ?, ?, ?, ?, 1, 0)
             """,
                 (
                     user_account,
+                    encrypted_password,
                     encrypted_session,
                     encryption_key,
                     dingtalk_webhook,
