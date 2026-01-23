@@ -9,9 +9,11 @@ from utils.session_manager import get_session, reset_session
 from scheduler import start_scheduler, stop_scheduler
 import os
 import atexit
-
+from utils.logger import setup_logger
 
 load_dotenv()
+# 在文件开头调用setup_logger
+logger = setup_logger()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
@@ -47,7 +49,12 @@ def api_import():
 
     lines = text.strip().split("\n")
     if len(lines) != 4:
-        return jsonify({"success": False, "message": "格式错误，需要4行数据：学号、密码、Webhook URL、签名密钥"})
+        return jsonify(
+            {
+                "success": False,
+                "message": "格式错误，需要4行数据：学号、密码、Webhook URL、签名密钥",
+            }
+        )
 
     user_account = lines[0].strip()
     user_password = lines[1].strip()
@@ -92,14 +99,19 @@ def api_import():
 
         # 首次获取成绩并上报初始化信息
         try:
-            restored_session = restore_session(encrypted_session, encryption_key)
-            page_hash, scores, expired = fetch_scores(restored_session)
+            page_hash, scores, expired = fetch_scores(session)
             if scores and not expired:
+                logger.info(f"用户 {user_account} 首次获取成绩成功，共 {len(scores)} 门")
                 notify_init_scores(dingtalk_webhook, dingtalk_secret, scores)
+            elif not scores:
+                logger.info(f"用户 {user_account} 暂无成绩记录")
+                notify_init_scores(dingtalk_webhook, dingtalk_secret, [])
         except Exception as e:
-            pass  # 初始化获取成绩失败不影响导入
+            logger.error(f"用户 {user_account} 初始化获取成绩失败: {str(e)}")
 
-        return jsonify({"success": True, "message": f"用户 {user_account} 导入成功，已开始监控"})
+        return jsonify(
+            {"success": True, "message": f"用户 {user_account} 导入成功，已开始监控"}
+        )
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})

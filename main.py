@@ -33,10 +33,20 @@ def handle_captcha():
                 logger.warning(f"请求验证码失败 (第{attempt}次)，状态码: {response.status_code}")
                 continue
 
+            # 检查响应是否为图片
+            content_type = response.headers.get('Content-Type', '')
+            if 'image' not in content_type:
+                logger.warning(f"验证码响应不是图片 (第{attempt}次)，Content-Type: {content_type}")
+                continue
+
+            if len(response.content) < 100:
+                logger.warning(f"验证码响应内容过短 (第{attempt}次)，长度: {len(response.content)}")
+                continue
+
             try:
                 image = Image.open(BytesIO(response.content))
             except Exception as e:
-                logger.warning(f"无法解析验证码图像 (第{attempt}次): {e}")
+                logger.warning(f"验证码图片解析失败 (第{attempt}次): {e}")
                 continue
 
             result = get_ocr_res(image)
@@ -132,7 +142,9 @@ def simulate_login(user_account, user_password):
                 logger.warning(f"验证码识别错误，重试第 {attempt + 1} 次")
                 continue
             if "用户登录" in response.text:
-                logger.warning(f"登录失败（响应包含用户登录页面），重试第 {attempt + 1} 次")
+                logger.warning(
+                    f"登录失败（响应包含用户登录页面），重试第 {attempt + 1} 次"
+                )
                 continue
             if "密码错误" in response.text:
                 raise Exception("用户名或密码错误")
