@@ -5,15 +5,20 @@ import hmac
 import hashlib
 import base64
 from urllib.parse import quote_plus
+from utils.logger import setup_logger
+
+logger = setup_logger()
 
 
 def generate_sign(secret):
     """生成钉钉签名"""
     timestamp = str(round(time.time() * 1000))
-    secret_enc = secret.encode('utf-8')
-    string_to_sign = '{}\n{}'.format(timestamp, secret)
-    string_to_sign_enc = string_to_sign.encode('utf-8')
-    hmac_code = hmac.new(secret_enc, string_to_sign_enc, digestmod=hashlib.sha256).digest()
+    secret_enc = secret.encode("utf-8")
+    string_to_sign = "{}\n{}".format(timestamp, secret)
+    string_to_sign_enc = string_to_sign.encode("utf-8")
+    hmac_code = hmac.new(
+        secret_enc, string_to_sign_enc, digestmod=hashlib.sha256
+    ).digest()
     sign = quote_plus(base64.b64encode(hmac_code))
     return timestamp, sign
 
@@ -26,19 +31,16 @@ def send_dingtalk_message(webhook_url, secret, message):
     timestamp, sign = generate_sign(secret)
     url = f"{webhook_url}&timestamp={timestamp}&sign={sign}"
 
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "msgtype": "text",
-        "text": {
-            "content": message
-        }
-    }
+    headers = {"Content-Type": "application/json"}
+    data = {"msgtype": "text", "text": {"content": message}}
 
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=10)
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data), timeout=10
+        )
         return response.status_code == 200
     except Exception as e:
-        print(f"发送钉钉消息失败: {str(e)}")
+        logger.error(f"发送钉钉消息失败: {str(e)}")
         return False
 
 
@@ -66,29 +68,25 @@ def notify_new_scores(webhook_url, secret, new_courses):
         message += f"- **课程属性**: {course['课程属性']}\n"
         message += f"- **课程性质**: {course['课程性质']}\n"
         message += f"- **课程类别**: {course['课程类别']}\n"
-        if course['分组名']:
+        if course["分组名"]:
             message += f"- **分组名**: {course['分组名']}\n"
-        if course['补重学期']:
+        if course["补重学期"]:
             message += f"- **补重学期**: {course['补重学期']}\n"
         message += "\n"
 
     timestamp, sign = generate_sign(secret)
     url = f"{webhook_url}&timestamp={timestamp}&sign={sign}"
 
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "msgtype": "markdown",
-        "markdown": {
-            "title": "新成绩通知",
-            "text": message
-        }
-    }
+    headers = {"Content-Type": "application/json"}
+    data = {"msgtype": "markdown", "markdown": {"title": "新成绩通知", "text": message}}
 
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=10)
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data), timeout=10
+        )
         return response.status_code == 200
     except Exception as e:
-        print(f"发送钉钉消息失败: {str(e)}")
+        logger.error(f"发送钉钉消息失败: {str(e)}")
         return False
 
 
@@ -117,19 +115,23 @@ def notify_init_scores(webhook_url, secret, scores):
     timestamp, sign = generate_sign(secret)
     url = f"{webhook_url}&timestamp={timestamp}&sign={sign}"
 
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     data = {
         "msgtype": "markdown",
-        "markdown": {
-            "title": "成绩监控初始化成功",
-            "text": message
-        }
+        "markdown": {"title": "成绩监控初始化成功", "text": message},
     }
 
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=10)
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data), timeout=10
+        )
+        if response.status_code != 200:
+            logger.error(
+                f"发送钉钉消息失败，状态码: {response.status_code}, 响应内容: {response.text}"
+            )
+        else:
+            logger.info("初始化成绩通知发送成功")
         return response.status_code == 200
     except Exception as e:
-        print(f"发送钉钉消息失败: {str(e)}")
+        logger.error(f"发送钉钉消息失败: {str(e)}")
         return False
-
