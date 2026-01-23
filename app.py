@@ -42,6 +42,8 @@ def favicon():
 def api_import():
     """导入用户数据"""
     data = request.json
+    if not data:
+        return jsonify({"success": False, "message": "请求数据为空"})
     text = data.get("text", "").strip()
 
     if not text:
@@ -101,7 +103,9 @@ def api_import():
         try:
             page_hash, scores, expired = fetch_scores(session)
             if scores and not expired:
-                logger.info(f"用户 {user_account} 首次获取成绩成功，共 {len(scores)} 门")
+                logger.info(
+                    f"用户 {user_account} 首次获取成绩成功，共 {len(scores)} 门"
+                )
                 notify_init_scores(dingtalk_webhook, dingtalk_secret, scores)
             elif not scores:
                 logger.info(f"用户 {user_account} 暂无成绩记录")

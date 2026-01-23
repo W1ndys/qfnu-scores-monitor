@@ -16,25 +16,25 @@ class DatabaseManager:
 
     # 定义表结构
     SCHEMA = {
-        'users': {
-            'user_account': 'TEXT PRIMARY KEY',
-            'encrypted_password': 'TEXT',
-            'encrypted_session': 'TEXT NOT NULL',
-            'encryption_key': 'TEXT NOT NULL',
-            'dingtalk_webhook': 'TEXT',
-            'dingtalk_secret': 'TEXT',
-            'enabled': 'INTEGER DEFAULT 1',
-            'session_expired': 'INTEGER DEFAULT 0',
-            'created_at': 'INTEGER',
-            'updated_at': 'INTEGER'
+        "users": {
+            "user_account": "TEXT PRIMARY KEY",
+            "encrypted_password": "TEXT",
+            "encrypted_session": "TEXT NOT NULL",
+            "encryption_key": "TEXT NOT NULL",
+            "dingtalk_webhook": "TEXT",
+            "dingtalk_secret": "TEXT",
+            "enabled": "INTEGER DEFAULT 1",
+            "session_expired": "INTEGER DEFAULT 0",
+            "created_at": "INTEGER",
+            "updated_at": "INTEGER",
         },
-        'scores': {
-            'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            'user_account': 'TEXT NOT NULL',
-            'page_hash': 'TEXT NOT NULL',
-            'reported_course_ids': 'TEXT DEFAULT "[]"',
-            'updated_at': 'INTEGER'
-        }
+        "scores": {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "user_account": "TEXT NOT NULL",
+            "page_hash": "TEXT NOT NULL",
+            "reported_course_ids": 'TEXT DEFAULT "[]"',
+            "updated_at": "INTEGER",
+        },
     }
 
     def __init__(self):
@@ -55,10 +55,13 @@ class DatabaseManager:
 
         for table_name, columns in self.SCHEMA.items():
             # 检查表是否存在
-            cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            cursor.execute(
+                f"SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (table_name,),
+            )
             if not cursor.fetchone():
                 # 创建表
-                cols = ', '.join([f"{col} {dtype}" for col, dtype in columns.items()])
+                cols = ", ".join([f"{col} {dtype}" for col, dtype in columns.items()])
                 cursor.execute(f"CREATE TABLE {table_name} ({cols})")
             else:
                 # 检查并添加缺失的列
@@ -68,7 +71,9 @@ class DatabaseManager:
                 for col, dtype in columns.items():
                     if col not in existing_cols:
                         # 添加缺失的列
-                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {col} {dtype}")
+                        cursor.execute(
+                            f"ALTER TABLE {table_name} ADD COLUMN {col} {dtype}"
+                        )
 
         conn.commit()
         conn.close()
@@ -88,11 +93,6 @@ class DatabaseManager:
                 self.conn.rollback()
             self.conn.close()
         return False
-
-
-def hash_user_id(user_account):
-    """生成用户哈希"""
-    return hashlib.sha256(user_account.encode()).hexdigest()
 
 
 # 初始化数据库
