@@ -4,288 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>成绩监控管理面板 - 卷卷的小工具</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Element Plus -->
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
     <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/element-plus"></script>
     <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#885021',
+                        'primary-light': '#a67c52',
+                        'el-success': '#67c23a',
+                        'el-warning': '#e6a23c',
+                        'el-danger': '#f56c6c',
+                        'el-info': '#409eff',
+                        'text-primary': '#303133',
+                        'text-regular': '#606266',
+                        'text-secondary': '#909399',
+                        'border-light': '#ebeef5',
+                        'bg-page': '#f0f2f5',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background-color: #f0f2f5;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", sans-serif;
-            min-height: 100vh;
-        }
+        /* 仅保留 Tailwind 无法完全覆盖的样式 */
         .app-header {
             background: linear-gradient(135deg, #885021 0%, #a67c52 100%);
-            color: white;
-            padding: 24px 0;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .header-title h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .header-title p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        .header-actions {
-            display: flex;
-            gap: 12px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 24px 24px;
-        }
-
-        /* 统计卡片 */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .stat-card .stat-value {
-            font-size: 32px;
-            font-weight: 600;
-            color: #303133;
-        }
-        .stat-card .stat-label {
-            font-size: 14px;
-            color: #909399;
-            margin-top: 4px;
-        }
-        .stat-card.primary .stat-value { color: #885021; }
-        .stat-card.success .stat-value { color: #67c23a; }
-        .stat-card.warning .stat-value { color: #e6a23c; }
-        .stat-card.danger .stat-value { color: #f56c6c; }
-        .stat-card.info .stat-value { color: #409eff; }
-
-        /* 日志查看器 */
         .log-content {
-            background: #1e1e1e;
-            color: #d4d4d4;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            line-height: 1.5;
-            padding: 16px;
-            border-radius: 6px;
-            max-height: 500px;
-            overflow: auto;
             white-space: pre-wrap;
             word-break: break-all;
         }
-        .log-toolbar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            align-items: center;
-        }
-        .push-count-badge {
-            background: #409eff;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            margin-left: 8px;
-        }
-
-        /* 主内容区 */
-        .main-content {
-            display: grid;
-            grid-template-columns: 400px 1fr;
-            gap: 24px;
-        }
-
-        /* 导入面板 */
-        .import-panel {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            height: fit-content;
-        }
-        .panel-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #ebeef5;
-            font-weight: 600;
-            font-size: 16px;
-            color: #303133;
-        }
-        .panel-body {
-            padding: 20px;
-        }
-        .import-hint {
-            background: #f5f7fa;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #606266;
-            line-height: 1.8;
-        }
-        .import-hint code {
-            background: #e4e7ed;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 12px;
-        }
-        .import-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        /* 用户列表面板 */
-        .users-panel {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .panel-header-with-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* 用户卡片网格 */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
-            padding: 20px;
         }
-        .user-card {
-            border: 1px solid #ebeef5;
-            border-radius: 8px;
-            padding: 16px;
-            transition: all 0.3s;
-        }
-        .user-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: #dcdfe6;
-        }
-        .user-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .user-account {
-            font-size: 18px;
-            font-weight: 600;
-            color: #303133;
-            font-family: monospace;
-        }
-        .user-card-status {
-            display: flex;
-            gap: 8px;
-        }
-        .user-card-info {
-            font-size: 13px;
-            color: #909399;
-            margin-bottom: 12px;
-        }
-        .user-card-info p {
-            margin: 4px 0;
-        }
-        .user-card-actions {
-            display: flex;
-            gap: 8px;
-            padding-top: 12px;
-            border-top: 1px solid #ebeef5;
-        }
-
-        /* 空状态 */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #909399;
-        }
-        .empty-state .icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        /* 分页 */
-        .pagination-wrapper {
-            display: flex;
-            justify-content: center;
-            padding: 16px 20px;
-            border-top: 1px solid #ebeef5;
-        }
-
-        /* 响应式 */
+        /* 响应式统计卡片 */
         @media (max-width: 1400px) {
-            .stats-row {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        @media (max-width: 1200px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            .stats-row {
-                grid-template-columns: repeat(3, 1fr);
-            }
+            .stats-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
         @media (max-width: 768px) {
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .header-content {
-                flex-direction: column;
-                gap: 16px;
-                text-align: center;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .main-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 480px) {
-            .stats-row {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: 1fr !important; }
         }
     </style>
 </head>
-<body>
+<body class="bg-bg-page font-sans min-h-screen">
     <div id="app">
         <!-- 顶部栏 -->
-        <header class="app-header">
-            <div class="header-content">
-                <div class="header-title">
-                    <div>
-                        <h1>🍪 卷卷的小工具</h1>
-                        <p>成绩监控管理面板（内网版）</p>
+        <header class="app-header text-white py-6 mb-6 shadow-lg">
+            <div class="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="text-center md:text-left">
+                        <h1 class="text-2xl font-semibold">🍪 卷卷的小工具</h1>
+                        <p class="opacity-90 text-sm">成绩监控管理面板（内网版）</p>
                     </div>
                 </div>
-                <div class="header-actions">
+                <div class="flex gap-3">
                     <el-button @click="loadUsers" :loading="loading" round>
                         <el-icon><Refresh /></el-icon>
                         刷新数据
@@ -302,43 +88,45 @@
             </div>
         </header>
 
-        <div class="container">
+        <div class="max-w-[1400px] mx-auto px-6 pb-6">
             <!-- 统计卡片 -->
-            <div class="stats-row">
-                <div class="stat-card primary">
-                    <div class="stat-value">[[ stats.total ]]</div>
-                    <div class="stat-label">总用户数</div>
+            <div class="stats-grid grid grid-cols-5 gap-4 mb-6">
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <div class="text-3xl font-semibold text-primary">[[ stats.total ]]</div>
+                    <div class="text-sm text-text-secondary mt-1">总用户数</div>
                 </div>
-                <div class="stat-card success">
-                    <div class="stat-value">[[ stats.enabled ]]</div>
-                    <div class="stat-label">监控中</div>
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <div class="text-3xl font-semibold text-el-success">[[ stats.enabled ]]</div>
+                    <div class="text-sm text-text-secondary mt-1">监控中</div>
                 </div>
-                <div class="stat-card warning">
-                    <div class="stat-value">[[ stats.expired ]]</div>
-                    <div class="stat-label">Session已过期</div>
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <div class="text-3xl font-semibold text-el-warning">[[ stats.expired ]]</div>
+                    <div class="text-sm text-text-secondary mt-1">Session已过期</div>
                 </div>
-                <div class="stat-card danger">
-                    <div class="stat-value">[[ stats.disabled ]]</div>
-                    <div class="stat-label">已禁用</div>
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <div class="text-3xl font-semibold text-el-danger">[[ stats.disabled ]]</div>
+                    <div class="text-sm text-text-secondary mt-1">已禁用</div>
                 </div>
-                <div class="stat-card info">
-                    <div class="stat-value">[[ stats.totalPush ]]</div>
-                    <div class="stat-label">总推送次数</div>
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <div class="text-3xl font-semibold text-el-info">[[ stats.totalPush ]]</div>
+                    <div class="text-sm text-text-secondary mt-1">总推送次数</div>
                 </div>
             </div>
 
             <!-- 主内容区 -->
-            <div class="main-content">
+            <div class="main-grid grid grid-cols-[400px_1fr] gap-6 xl:grid-cols-[400px_1fr]">
                 <!-- 导入面板 -->
-                <div class="import-panel">
-                    <div class="panel-header">导入新用户</div>
-                    <div class="panel-body">
-                        <div class="import-hint">
+                <div class="bg-white rounded-lg shadow-sm h-fit">
+                    <div class="px-5 py-4 border-b border-border-light font-semibold text-base text-text-primary">
+                        导入新用户
+                    </div>
+                    <div class="p-5">
+                        <div class="bg-gray-50 rounded-md p-3 mb-4 text-[13px] text-text-regular leading-7">
                             <strong>输入格式（4行）：</strong><br>
-                            第1行：<code>学号</code><br>
-                            第2行：<code>密码</code><br>
-                            第3行：<code>钉钉Webhook URL</code><br>
-                            第4行：<code>钉钉签名密钥</code>
+                            第1行：<code class="bg-gray-200 px-1.5 py-0.5 rounded text-xs font-mono">学号</code><br>
+                            第2行：<code class="bg-gray-200 px-1.5 py-0.5 rounded text-xs font-mono">密码</code><br>
+                            第3行：<code class="bg-gray-200 px-1.5 py-0.5 rounded text-xs font-mono">钉钉Webhook URL</code><br>
+                            第4行：<code class="bg-gray-200 px-1.5 py-0.5 rounded text-xs font-mono">钉钉签名密钥</code>
                         </div>
 
                         <el-input
@@ -352,7 +140,7 @@ SECxxxxxxxxxxxxxxx"
                             style="font-family: monospace;"
                         ></el-input>
 
-                        <div class="import-actions">
+                        <div class="flex gap-3 mt-4">
                             <el-button type="primary" @click="importUser" :loading="importing" style="flex: 1;">
                                 <el-icon><Upload /></el-icon>
                                 导入用户
@@ -366,23 +154,30 @@ SECxxxxxxxxxxxxxxx"
                 </div>
 
                 <!-- 用户列表面板 -->
-                <div class="users-panel">
-                    <div class="panel-header panel-header-with-actions">
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-5 py-4 border-b border-border-light font-semibold text-base text-text-primary flex justify-between items-center">
                         <span>用户列表</span>
                         <el-tag type="info">共 [[ users.length ]] 个用户</el-tag>
                     </div>
 
                     <!-- 用户卡片网格 -->
-                    <div class="users-grid" v-if="users.length > 0" v-loading="loading">
-                        <div class="user-card" v-for="user in pagedUsers" :key="user.user_account">
-                            <div class="user-card-header">
-                                <span class="user-account">
+                    <div class="users-grid gap-4 p-5" v-if="users.length > 0" v-loading="loading">
+                        <div
+                            class="border border-border-light rounded-lg p-4 transition-all duration-300 hover:shadow-lg hover:border-gray-300"
+                            v-for="user in pagedUsers"
+                            :key="user.user_account"
+                        >
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-lg font-semibold text-text-primary font-mono">
                                     [[ user.user_account ]]
-                                    <span class="push-count-badge" v-if="user.push_count > 0">
+                                    <span
+                                        class="bg-el-info text-white px-2 py-0.5 rounded-full text-xs ml-2"
+                                        v-if="user.push_count > 0"
+                                    >
                                         [[ user.push_count ]] 次推送
                                     </span>
                                 </span>
-                                <div class="user-card-status">
+                                <div class="flex gap-2">
                                     <el-tag size="small" :type="user.enabled ? 'success' : 'info'">
                                         [[ user.enabled ? '监控中' : '已禁用' ]]
                                     </el-tag>
@@ -391,11 +186,11 @@ SECxxxxxxxxxxxxxxx"
                                     </el-tag>
                                 </div>
                             </div>
-                            <div class="user-card-info">
+                            <div class="text-[13px] text-text-secondary mb-3 space-y-1">
                                 <p>最近检查：[[ user.last_check_at ? formatTime(user.last_check_at) : '从未检查' ]]</p>
                                 <p>创建时间：[[ formatTime(user.created_at) ]]</p>
                             </div>
-                            <div class="user-card-actions">
+                            <div class="flex gap-2 pt-3 border-t border-border-light">
                                 <el-button
                                     size="small"
                                     type="primary"
@@ -426,7 +221,7 @@ SECxxxxxxxxxxxxxxx"
                     </div>
 
                     <!-- 分页 -->
-                    <div class="pagination-wrapper" v-if="users.length > pageSize">
+                    <div class="flex justify-center px-5 py-4 border-t border-border-light" v-if="users.length > pageSize">
                         <el-pagination
                             v-model:current-page="currentPage"
                             :page-size="pageSize"
@@ -437,10 +232,10 @@ SECxxxxxxxxxxxxxxx"
                     </div>
 
                     <!-- 空状态 -->
-                    <div class="empty-state" v-if="!loading && users.length === 0">
-                        <div class="icon">📭</div>
+                    <div class="text-center py-16 px-5 text-text-secondary" v-if="!loading && users.length === 0">
+                        <div class="text-6xl mb-4 opacity-50">📭</div>
                         <p>暂无用户数据</p>
-                        <p style="font-size: 13px; margin-top: 8px;">请在左侧导入用户开始监控</p>
+                        <p class="text-[13px] mt-2">请在左侧导入用户开始监控</p>
                     </div>
                 </div>
             </div>
@@ -454,7 +249,7 @@ SECxxxxxxxxxxxxxxx"
             top="5vh"
             :close-on-click-modal="false"
         >
-            <div class="log-toolbar">
+            <div class="flex gap-3 mb-3 items-center">
                 <el-select v-model="selectedLog" placeholder="选择日志文件" style="width: 280px;" @change="loadLogContent">
                     <el-option
                         v-for="log in logFiles"
@@ -464,14 +259,19 @@ SECxxxxxxxxxxxxxxx"
                     ></el-option>
                 </el-select>
                 <el-input-number v-model="logLines" :min="50" :max="1000" :step="50" style="width: 120px;"></el-input-number>
-                <span style="color: #909399; font-size: 13px;">行</span>
+                <span class="text-text-secondary text-[13px]">行</span>
                 <el-button @click="loadLogContent" :loading="logLoading">
                     <el-icon><Refresh /></el-icon>
                     刷新
                 </el-button>
                 <el-checkbox v-model="autoRefresh" @change="toggleAutoRefresh">自动刷新</el-checkbox>
             </div>
-            <div class="log-content" v-loading="logLoading">[[ logContent || '请选择日志文件' ]]</div>
+            <div
+                class="log-content bg-[#1e1e1e] text-[#d4d4d4] text-xs leading-relaxed p-4 rounded-md max-h-[500px] overflow-auto"
+                v-loading="logLoading"
+            >
+                [[ logContent || '请选择日志文件' ]]
+            </div>
         </el-dialog>
     </div>
 
