@@ -235,6 +235,14 @@
             opacity: 0.5;
         }
 
+        /* 分页 */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 16px 20px;
+            border-top: 1px solid #ebeef5;
+        }
+
         /* 响应式 */
         @media (max-width: 1400px) {
             .stats-row {
@@ -366,7 +374,7 @@ SECxxxxxxxxxxxxxxx"
 
                     <!-- 用户卡片网格 -->
                     <div class="users-grid" v-if="users.length > 0" v-loading="loading">
-                        <div class="user-card" v-for="user in users" :key="user.user_account">
+                        <div class="user-card" v-for="user in pagedUsers" :key="user.user_account">
                             <div class="user-card-header">
                                 <span class="user-account">
                                     [[ user.user_account ]]
@@ -415,6 +423,17 @@ SECxxxxxxxxxxxxxxx"
                                 </el-button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="pagination-wrapper" v-if="users.length > pageSize">
+                        <el-pagination
+                            v-model:current-page="currentPage"
+                            :page-size="pageSize"
+                            :total="users.length"
+                            layout="prev, pager, next, jumper"
+                            @current-change="handlePageChange"
+                        />
                     </div>
 
                     <!-- 空状态 -->
@@ -469,6 +488,22 @@ SECxxxxxxxxxxxxxxx"
                 const loading = ref(false)
                 const importing = ref(false)
                 const checking = ref(false)
+
+                // 分页相关
+                const currentPage = ref(1)
+                const pageSize = ref(6)
+
+                // 分页后的用户列表
+                const pagedUsers = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value
+                    const end = start + pageSize.value
+                    return users.value.slice(start, end)
+                })
+
+                // 页码变化时的处理
+                const handlePageChange = (page) => {
+                    currentPage.value = page
+                }
 
                 // 日志相关
                 const logDialogVisible = ref(false)
@@ -734,6 +769,11 @@ SECxxxxxxxxxxxxxxx"
                     checkUser,
                     deleteUser,
                     triggerCheck,
+                    // 分页相关
+                    currentPage,
+                    pageSize,
+                    pagedUsers,
+                    handlePageChange,
                     // 日志相关
                     logDialogVisible,
                     logFiles,
