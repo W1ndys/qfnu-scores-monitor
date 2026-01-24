@@ -45,7 +45,7 @@ def try_relogin(user_account, encrypted_password, encryption_key):
 def handle_expired_session(cursor, user, dingtalk_webhook, dingtalk_secret):
     """处理过期的 Session，尝试自动重新登录"""
     user_account = user["user_account"]
-    encrypted_password = user.get("encrypted_password")
+    encrypted_password = user["encrypted_password"]
     encryption_key = user["encryption_key"]
 
     # 如果没有存储密码，直接标记过期
