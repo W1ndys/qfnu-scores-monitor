@@ -5,9 +5,7 @@ import hmac
 import hashlib
 import base64
 from urllib.parse import quote_plus
-from utils.logger import setup_logger
-
-logger = setup_logger()
+from utils.logger import logger
 
 
 def generate_sign(secret):

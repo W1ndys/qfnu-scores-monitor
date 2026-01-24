@@ -9,11 +9,9 @@ from utils.session_manager import get_session, reset_session
 from scheduler import start_scheduler, stop_scheduler
 import os
 import atexit
-from utils.logger import setup_logger
+from utils.logger import logger
 
 load_dotenv()
-# 在文件开头调用setup_logger
-logger = setup_logger()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)

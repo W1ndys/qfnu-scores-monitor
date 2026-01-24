@@ -3,9 +3,7 @@ from models import DatabaseManager
 from utils.score_monitor import restore_session, fetch_scores, compare_scores, serialize_session
 from utils.dingtalk import notify_new_scores, notify_session_expired
 from utils.crypto import encrypt_session, decrypt_session
-from utils.logger import setup_logger
-
-logger = setup_logger()
+from utils.logger import logger
 scheduler = BackgroundScheduler()
 
 MAX_LOGIN_ATTEMPTS = 3  # 验证码识别最大尝试次数

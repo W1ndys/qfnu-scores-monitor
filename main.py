@@ -4,13 +4,9 @@ import datetime
 from dotenv import load_dotenv
 from utils.session_manager import get_session
 from utils.captcha_ocr import get_ocr_res
-from utils.logger import setup_logger
+from utils.logger import logger
 from config import get_user_config
 import time
-
-
-# 在文件开头调用setup_logger
-logger = setup_logger()
 
 load_dotenv()
 
@@ -33,8 +29,8 @@ def handle_captcha():
             return None
 
         # 检查响应是否为图片
-        content_type = response.headers.get('Content-Type', '')
-        if 'image' not in content_type:
+        content_type = response.headers.get("Content-Type", "")
+        if "image" not in content_type:
             logger.warning(f"验证码响应不是图片，Content-Type: {content_type}")
             return None
 
@@ -119,7 +115,6 @@ def simulate_login(user_account, user_password):
 
     # 获取必要的cookie
     cookies = session.cookies
-    logger.info(f"获取到的cookie: {cookies}")
 
     for attempt in range(3):
         random_code = handle_captcha()
@@ -127,9 +122,7 @@ def simulate_login(user_account, user_password):
             logger.warning(f"验证码获取失败，重试第 {attempt + 1} 次")
             continue
 
-        logger.info(f"验证码: {random_code}")
         encoded = generate_encoded_string(user_account, user_password)
-        logger.info(f"encoded: {encoded}")
         response = login(random_code, encoded)
         logger.info(f"登录响应: {response.status_code}")
 

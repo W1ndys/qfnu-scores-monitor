@@ -1,6 +1,6 @@
 import os
 import sys
-from loguru import logger
+from utils.logger import logger
 
 
 def get_user_config():

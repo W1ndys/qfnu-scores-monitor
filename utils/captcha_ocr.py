@@ -1,7 +1,5 @@
 import ddddocr
-from utils.logger import setup_logger
-
-logger = setup_logger()
+from utils.logger import logger
 ocr = ddddocr.DdddOcr(show_ad=False)
 
 
