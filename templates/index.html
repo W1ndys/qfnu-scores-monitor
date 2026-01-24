@@ -62,7 +62,7 @@
         /* 统计卡片 */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -86,6 +86,36 @@
         .stat-card.success .stat-value { color: #67c23a; }
         .stat-card.warning .stat-value { color: #e6a23c; }
         .stat-card.danger .stat-value { color: #f56c6c; }
+        .stat-card.info .stat-value { color: #409eff; }
+
+        /* 日志查看器 */
+        .log-content {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 16px;
+            border-radius: 6px;
+            max-height: 500px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .log-toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .push-count-badge {
+            background: #409eff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
 
         /* 主内容区 */
         .main-content {
@@ -206,22 +236,32 @@
         }
 
         /* 响应式 */
+        @media (max-width: 1400px) {
+            .stats-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
             .stats-row {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
         @media (max-width: 768px) {
             .stats-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
             .header-content {
                 flex-direction: column;
                 gap: 16px;
                 text-align: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-row {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -246,6 +286,10 @@
                         <el-icon><Search /></el-icon>
                         手动检测
                     </el-button>
+                    <el-button type="info" @click="showLogDialog" round>
+                        <el-icon><Document /></el-icon>
+                        查看日志
+                    </el-button>
                 </div>
             </div>
         </header>
@@ -268,6 +312,10 @@
                 <div class="stat-card danger">
                     <div class="stat-value">[[ stats.disabled ]]</div>
                     <div class="stat-label">已禁用</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-value">[[ stats.totalPush ]]</div>
+                    <div class="stat-label">总推送次数</div>
                 </div>
             </div>
 
@@ -320,7 +368,12 @@ SECxxxxxxxxxxxxxxx"
                     <div class="users-grid" v-if="users.length > 0" v-loading="loading">
                         <div class="user-card" v-for="user in users" :key="user.user_account">
                             <div class="user-card-header">
-                                <span class="user-account">[[ user.user_account ]]</span>
+                                <span class="user-account">
+                                    [[ user.user_account ]]
+                                    <span class="push-count-badge" v-if="user.push_count > 0">
+                                        [[ user.push_count ]] 次推送
+                                    </span>
+                                </span>
                                 <div class="user-card-status">
                                     <el-tag size="small" :type="user.enabled ? 'success' : 'info'">
                                         [[ user.enabled ? '监控中' : '已禁用' ]]
@@ -373,6 +426,34 @@ SECxxxxxxxxxxxxxxx"
                 </div>
             </div>
         </div>
+
+        <!-- 日志查看对话框 -->
+        <el-dialog
+            v-model="logDialogVisible"
+            title="系统日志"
+            width="80%"
+            top="5vh"
+            :close-on-click-modal="false"
+        >
+            <div class="log-toolbar">
+                <el-select v-model="selectedLog" placeholder="选择日志文件" style="width: 280px;" @change="loadLogContent">
+                    <el-option
+                        v-for="log in logFiles"
+                        :key="log.name"
+                        :label="log.name + ' (' + formatFileSize(log.size) + ')'"
+                        :value="log.name"
+                    ></el-option>
+                </el-select>
+                <el-input-number v-model="logLines" :min="50" :max="1000" :step="50" style="width: 120px;"></el-input-number>
+                <span style="color: #909399; font-size: 13px;">行</span>
+                <el-button @click="loadLogContent" :loading="logLoading">
+                    <el-icon><Refresh /></el-icon>
+                    刷新
+                </el-button>
+                <el-checkbox v-model="autoRefresh" @change="toggleAutoRefresh">自动刷新</el-checkbox>
+            </div>
+            <div class="log-content" v-loading="logLoading">[[ logContent || '请选择日志文件' ]]</div>
+        </el-dialog>
     </div>
 
     <script>
@@ -389,6 +470,16 @@ SECxxxxxxxxxxxxxxx"
                 const importing = ref(false)
                 const checking = ref(false)
 
+                // 日志相关
+                const logDialogVisible = ref(false)
+                const logFiles = ref([])
+                const selectedLog = ref('')
+                const logContent = ref('')
+                const logLoading = ref(false)
+                const logLines = ref(200)
+                const autoRefresh = ref(false)
+                let autoRefreshTimer = null
+
                 // 格式化时间戳
                 const formatTime = (timestamp) => {
                     if (!timestamp) return '-'
@@ -403,13 +494,21 @@ SECxxxxxxxxxxxxxxx"
                     })
                 }
 
+                // 格式化文件大小
+                const formatFileSize = (bytes) => {
+                    if (bytes < 1024) return bytes + ' B'
+                    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+                    return (bytes / 1024 / 1024).toFixed(1) + ' MB'
+                }
+
                 // 统计数据
                 const stats = computed(() => {
                     const total = users.value.length
                     const enabled = users.value.filter(u => u.enabled && !u.session_expired).length
                     const expired = users.value.filter(u => u.session_expired).length
                     const disabled = users.value.filter(u => !u.enabled).length
-                    return { total, enabled, expired, disabled }
+                    const totalPush = users.value.reduce((sum, u) => sum + (u.push_count || 0), 0)
+                    return { total, enabled, expired, disabled, totalPush }
                 })
 
                 // 加载用户列表
@@ -561,6 +660,61 @@ SECxxxxxxxxxxxxxxx"
                     }
                 }
 
+                // 显示日志对话框
+                const showLogDialog = async () => {
+                    logDialogVisible.value = true
+                    await loadLogFiles()
+                }
+
+                // 加载日志文件列表
+                const loadLogFiles = async () => {
+                    try {
+                        const response = await fetch('/api/logs')
+                        const data = await response.json()
+                        if (data.success) {
+                            logFiles.value = data.logs
+                            if (data.logs.length > 0 && !selectedLog.value) {
+                                selectedLog.value = data.logs[0].name
+                                await loadLogContent()
+                            }
+                        }
+                    } catch (error) {
+                        ElMessage.error('加载日志列表失败: ' + error.message)
+                    }
+                }
+
+                // 加载日志内容
+                const loadLogContent = async () => {
+                    if (!selectedLog.value) return
+
+                    logLoading.value = true
+                    try {
+                        const response = await fetch(`/api/logs/${selectedLog.value}?lines=${logLines.value}`)
+                        const data = await response.json()
+                        if (data.success) {
+                            logContent.value = data.content
+                        } else {
+                            logContent.value = '加载失败: ' + data.message
+                        }
+                    } catch (error) {
+                        logContent.value = '加载失败: ' + error.message
+                    } finally {
+                        logLoading.value = false
+                    }
+                }
+
+                // 切换自动刷新
+                const toggleAutoRefresh = (val) => {
+                    if (val) {
+                        autoRefreshTimer = setInterval(loadLogContent, 3000)
+                    } else {
+                        if (autoRefreshTimer) {
+                            clearInterval(autoRefreshTimer)
+                            autoRefreshTimer = null
+                        }
+                    }
+                }
+
                 onMounted(() => {
                     loadUsers()
                 })
@@ -573,12 +727,24 @@ SECxxxxxxxxxxxxxxx"
                     checking,
                     stats,
                     formatTime,
+                    formatFileSize,
                     loadUsers,
                     importUser,
                     toggleUser,
                     checkUser,
                     deleteUser,
-                    triggerCheck
+                    triggerCheck,
+                    // 日志相关
+                    logDialogVisible,
+                    logFiles,
+                    selectedLog,
+                    logContent,
+                    logLoading,
+                    logLines,
+                    autoRefresh,
+                    showLogDialog,
+                    loadLogContent,
+                    toggleAutoRefresh
                 }
             }
         })
@@ -590,6 +756,7 @@ SECxxxxxxxxxxxxxxx"
         app.component('Upload', ElementPlusIconsVue.Upload)
         app.component('Delete', ElementPlusIconsVue.Delete)
         app.component('Switch', ElementPlusIconsVue.Switch)
+        app.component('Document', ElementPlusIconsVue.Document)
         app.mount('#app')
     </script>
 </body>
