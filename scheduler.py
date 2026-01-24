@@ -53,7 +53,7 @@ def handle_expired_session(cursor, user, dingtalk_webhook, dingtalk_secret):
             "UPDATE users SET session_expired = 1 WHERE user_account = ?",
             (user_account,),
         )
-        notify_session_expired(dingtalk_webhook, dingtalk_secret)
+        notify_session_expired(dingtalk_webhook, dingtalk_secret, user_account)
         return False
 
     # 尝试重新登录
@@ -73,7 +73,7 @@ def handle_expired_session(cursor, user, dingtalk_webhook, dingtalk_secret):
             "UPDATE users SET session_expired = 1 WHERE user_account = ?",
             (user_account,),
         )
-        notify_session_expired(dingtalk_webhook, dingtalk_secret)
+        notify_session_expired(dingtalk_webhook, dingtalk_secret, user_account)
         return False
 
 
@@ -109,7 +109,7 @@ def check_single_user(user_account):
 
                 if new_courses:
                     logger.info(f"用户 {user_account} 发现新成绩: {len(new_courses)}门")
-                    notify_new_scores(user["dingtalk_webhook"], user["dingtalk_secret"], new_courses)
+                    notify_new_scores(user["dingtalk_webhook"], user["dingtalk_secret"], new_courses, user_account)
                     return {"success": True, "message": f"发现 {len(new_courses)} 门新成绩，已发送通知", "status": "new_scores", "count": len(new_courses)}
                 else:
                     logger.info(f"用户 {user_account} 无新成绩")
@@ -152,7 +152,7 @@ def check_all_users():
 
                     if new_courses:
                         logger.info(f"用户 {user_account} 发现新成绩: {len(new_courses)}门")
-                        notify_new_scores(dingtalk_webhook, dingtalk_secret, new_courses)
+                        notify_new_scores(dingtalk_webhook, dingtalk_secret, new_courses, user_account)
                     else:
                         logger.info(f"用户 {user_account} 无新成绩")
 
