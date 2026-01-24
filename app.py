@@ -47,19 +47,22 @@ def api_import():
     if not text:
         return jsonify({"success": False, "message": "请输入数据"})
 
-    lines = text.strip().split("\n")
-    if len(lines) != 4:
+    # 预处理：去除空行，截取前四行
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    lines = lines[:4]  # 截取前四行
+
+    if len(lines) < 4:
         return jsonify(
             {
                 "success": False,
-                "message": "格式错误，需要4行数据：学号、密码、Webhook URL、签名密钥",
+                "message": f"数据不足，需要4行有效数据（学号、密码、Webhook URL、签名密钥），当前只有 {len(lines)} 行",
             }
         )
 
-    user_account = lines[0].strip()
-    user_password = lines[1].strip()
-    dingtalk_webhook = lines[2].strip()
-    dingtalk_secret = lines[3].strip()
+    user_account = lines[0]
+    user_password = lines[1]
+    dingtalk_webhook = lines[2]
+    dingtalk_secret = lines[3]
 
     if not all([user_account, user_password, dingtalk_webhook, dingtalk_secret]):
         return jsonify({"success": False, "message": "所有字段都不能为空"})
@@ -125,7 +128,7 @@ def api_users():
     with DatabaseManager() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT user_account, enabled, session_expired, push_count, created_at, updated_at FROM users"
+            "SELECT user_account, enabled, session_expired, push_count, last_check_at, created_at, updated_at FROM users"
         )
         users = [dict(row) for row in cursor.fetchall()]
     return jsonify({"success": True, "users": users})
