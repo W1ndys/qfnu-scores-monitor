@@ -8,6 +8,21 @@ from urllib.parse import quote_plus
 from utils.logger import logger
 
 
+def increment_push_count(user_account):
+    """增加用户的推送计数"""
+    from models import DatabaseManager
+
+    try:
+        with DatabaseManager() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET push_count = push_count + 1 WHERE user_account = ?",
+                (user_account,),
+            )
+    except Exception as e:
+        logger.error(f"增加推送计数失败: {str(e)}")
+
+
 def generate_sign(secret):
     """生成钉钉签名"""
     timestamp = str(round(time.time() * 1000))
@@ -21,7 +36,7 @@ def generate_sign(secret):
     return timestamp, sign
 
 
-def send_dingtalk_message(webhook_url, secret, message):
+def send_dingtalk_message(webhook_url, secret, message, user_account=None):
     """发送钉钉消息"""
     if not webhook_url or not secret:
         return False
@@ -36,13 +51,15 @@ def send_dingtalk_message(webhook_url, secret, message):
         response = requests.post(
             url, headers=headers, data=json.dumps(data), timeout=10
         )
+        if response.status_code == 200 and user_account:
+            increment_push_count(user_account)
         return response.status_code == 200
     except Exception as e:
         logger.error(f"发送钉钉消息失败: {str(e)}")
         return False
 
 
-def notify_new_scores(webhook_url, secret, new_courses):
+def notify_new_scores(webhook_url, secret, new_courses, user_account=None):
     """通知新成绩"""
     if not new_courses:
         return True
@@ -82,23 +99,25 @@ def notify_new_scores(webhook_url, secret, new_courses):
         response = requests.post(
             url, headers=headers, data=json.dumps(data), timeout=10
         )
+        if response.status_code == 200 and user_account:
+            increment_push_count(user_account)
         return response.status_code == 200
     except Exception as e:
         logger.error(f"发送钉钉消息失败: {str(e)}")
         return False
 
 
-def notify_session_expired(webhook_url, secret):
+def notify_session_expired(webhook_url, secret, user_account=None):
     """通知session过期且自动登录失败"""
     message = "【登录过期提醒】\n您的教务系统登录已过期，自动重新登录失败（验证码识别3次均失败），请手动重新导入账号信息。"
-    return send_dingtalk_message(webhook_url, secret, message)
+    return send_dingtalk_message(webhook_url, secret, message, user_account)
 
 
-def notify_init_scores(webhook_url, secret, scores):
+def notify_init_scores(webhook_url, secret, scores, user_account=None):
     """初始化时上报当前所有成绩"""
     if not scores:
         message = "【成绩监控初始化成功】\n\n当前暂无成绩记录。\n\n后台将每隔一段时间检测一次是否有新成绩，发现新成绩会自动通过钉钉上报。"
-        return send_dingtalk_message(webhook_url, secret, message)
+        return send_dingtalk_message(webhook_url, secret, message, user_account)
 
     # 构建markdown格式的消息
     message = "# 📋 成绩监控初始化成功\n\n"
@@ -129,6 +148,8 @@ def notify_init_scores(webhook_url, secret, scores):
             )
         else:
             logger.info("初始化成绩通知发送成功")
+            if user_account:
+                increment_push_count(user_account)
         return response.status_code == 200
     except Exception as e:
         logger.error(f"发送钉钉消息失败: {str(e)}")
