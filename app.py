@@ -104,10 +104,10 @@ def api_import():
                 logger.info(
                     f"用户 {user_account} 首次获取成绩成功，共 {len(scores)} 门"
                 )
-                notify_init_scores(dingtalk_webhook, dingtalk_secret, scores)
+                notify_init_scores(dingtalk_webhook, dingtalk_secret, scores, user_account)
             elif not scores:
                 logger.info(f"用户 {user_account} 暂无成绩记录")
-                notify_init_scores(dingtalk_webhook, dingtalk_secret, [])
+                notify_init_scores(dingtalk_webhook, dingtalk_secret, [], user_account)
         except Exception as e:
             logger.error(f"用户 {user_account} 初始化获取成绩失败: {str(e)}")
 
@@ -125,7 +125,7 @@ def api_users():
     with DatabaseManager() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT user_account, enabled, session_expired, created_at, updated_at FROM users"
+            "SELECT user_account, enabled, session_expired, push_count, created_at, updated_at FROM users"
         )
         users = [dict(row) for row in cursor.fetchall()]
     return jsonify({"success": True, "users": users})
@@ -169,6 +169,50 @@ def api_check():
 
     check_all_users()
     return jsonify({"success": True, "message": "全部用户检测已触发"})
+
+
+@app.route("/api/logs", methods=["GET"])
+def api_logs():
+    """获取日志文件列表"""
+    import glob
+
+    log_files = glob.glob("logs/*.log")
+    log_files.sort(key=os.path.getmtime, reverse=True)
+    logs = []
+    for f in log_files:
+        logs.append({
+            "name": os.path.basename(f),
+            "size": os.path.getsize(f),
+            "mtime": int(os.path.getmtime(f))
+        })
+    return jsonify({"success": True, "logs": logs})
+
+
+@app.route("/api/logs/<log_name>", methods=["GET"])
+def api_log_content(log_name):
+    """获取指定日志文件内容"""
+    import re
+
+    # 安全检查：只允许访问 logs 目录下的 .log 文件
+    if not re.match(r'^app_\d{8}_\d{6}\.log$', log_name):
+        return jsonify({"success": False, "message": "无效的日志文件名"})
+
+    log_path = os.path.join("logs", log_name)
+    if not os.path.exists(log_path):
+        return jsonify({"success": False, "message": "日志文件不存在"})
+
+    try:
+        # 获取请求参数
+        lines = request.args.get("lines", 200, type=int)
+        lines = min(lines, 1000)  # 限制最大行数
+
+        with open(log_path, "r", encoding="utf-8") as f:
+            content = f.readlines()
+            # 返回最后 N 行
+            content = content[-lines:] if len(content) > lines else content
+            return jsonify({"success": True, "content": "".join(content), "total_lines": len(content)})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 
 if __name__ == "__main__":
