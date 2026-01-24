@@ -26,6 +26,7 @@ class DatabaseManager:
             "enabled": "INTEGER DEFAULT 1",
             "session_expired": "INTEGER DEFAULT 0",
             "push_count": "INTEGER DEFAULT 0",
+            "last_check_at": "INTEGER",
             "created_at": "INTEGER",
             "updated_at": "INTEGER",
         },

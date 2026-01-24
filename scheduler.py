@@ -1,5 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from models import DatabaseManager
+from models import DatabaseManager, get_timestamp
 from utils.score_monitor import restore_session, fetch_scores, compare_scores, serialize_session
 from utils.dingtalk import notify_new_scores, notify_session_expired
 from utils.crypto import encrypt_session, decrypt_session
@@ -92,6 +92,12 @@ def check_single_user(user_account):
         if not user:
             return {"success": False, "message": "用户不存在"}
 
+        # 更新最近检查时间
+        cursor.execute(
+            "UPDATE users SET last_check_at = ? WHERE user_account = ?",
+            (get_timestamp(), user_account),
+        )
+
         try:
             session = restore_session(user["encrypted_session"], user["encryption_key"])
             page_hash, scores, expired = fetch_scores(session)
@@ -137,6 +143,12 @@ def check_all_users():
             user_account = user["user_account"]
             dingtalk_webhook = user["dingtalk_webhook"]
             dingtalk_secret = user["dingtalk_secret"]
+
+            # 更新最近检查时间
+            cursor.execute(
+                "UPDATE users SET last_check_at = ? WHERE user_account = ?",
+                (get_timestamp(), user_account),
+            )
 
             try:
                 session = restore_session(user["encrypted_session"], user["encryption_key"])
