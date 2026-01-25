@@ -100,6 +100,7 @@ def notify_new_scores(webhook_url, secret, new_courses, user_account=None):
             url, headers=headers, data=json.dumps(data), timeout=10
         )
         if response.status_code == 200 and user_account:
+            logger.info("新成绩通知发送成功")
             increment_push_count(user_account)
         return response.status_code == 200
     except Exception as e:

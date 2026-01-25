@@ -111,7 +111,8 @@ def check_single_user(user_account):
                     return {"success": True, "message": "Session已过期，自动登录失败，已发送通知", "status": "expired"}
 
             if page_hash is not None and scores is not None:
-                new_courses = compare_scores(user_account, page_hash, scores)
+                # 传递连接以避免嵌套事务
+                new_courses = compare_scores(user_account, page_hash, scores, conn)
 
                 if new_courses:
                     logger.info(f"用户 {user_account} 发现新成绩: {len(new_courses)}门")
@@ -160,7 +161,8 @@ def check_all_users():
                     continue
 
                 if page_hash is not None and scores is not None:
-                    new_courses = compare_scores(user_account, page_hash, scores)
+                    # 传递连接以避免嵌套事务
+                    new_courses = compare_scores(user_account, page_hash, scores, conn)
 
                     if new_courses:
                         logger.info(f"用户 {user_account} 发现新成绩: {len(new_courses)}门")

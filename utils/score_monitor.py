@@ -97,11 +97,16 @@ def fetch_scores(session):
         return None, None, False
 
 
-def compare_scores(user_account, page_hash, scores):
-    """对比成绩变化，使用页面哈希判断并记录已播报的课程编号"""
-    with DatabaseManager() as conn:
-        cursor = conn.cursor()
-
+def compare_scores(user_account, page_hash, scores, conn=None):
+    """对比成绩变化，使用页面哈希判断并记录已播报的课程编号
+    
+    Args:
+        user_account: 用户账号
+        page_hash: 页面哈希
+        scores: 成绩列表
+        conn: 可选的数据库连接，如果提供则使用该连接，否则创建新连接
+    """
+    def _do_compare(cursor):
         cursor.execute("SELECT page_hash, reported_course_ids FROM scores WHERE user_account = ? ORDER BY updated_at DESC LIMIT 1", (user_account,))
         row = cursor.fetchone()
 
@@ -138,3 +143,12 @@ def compare_scores(user_account, page_hash, scores):
             )
             # 首次不通知
             return []
+
+    # 如果提供了连接，直接使用；否则创建新连接
+    if conn is not None:
+        cursor = conn.cursor()
+        return _do_compare(cursor)
+    else:
+        with DatabaseManager() as new_conn:
+            cursor = new_conn.cursor()
+            return _do_compare(cursor)
